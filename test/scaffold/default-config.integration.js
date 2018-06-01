@@ -6,18 +6,18 @@ var sinon = require('sinon');
 var proxyquire = require('proxyquire');
 
 describe('#defaultConfig', function() {
-  var expectedExecPath = path.resolve(__dirname, '../../bin/qtumd');
+  var expectedExecPath = path.resolve(__dirname, '../../bin/berycoind');
 
   it('will return expected configuration', function() {
     var config = JSON.stringify({
       network: 'livenet',
       port: 3001,
       services: [
-        'qtumd',
+        'berycoind',
         'web'
       ],
       servicesConfig: {
-        qtumd: {
+        berycoind: {
           spawn: {
             datadir: process.env.HOME + '/.bitcore/data',
             exec: expectedExecPath
@@ -29,7 +29,7 @@ describe('#defaultConfig', function() {
       fs: {
         existsSync: sinon.stub().returns(false),
         writeFileSync: function(path, data) {
-          path.should.equal(process.env.HOME + '/.bitcore/qtumcore-node.json');
+          path.should.equal(process.env.HOME + '/.bitcore/berycoincore-node.json');
           data.should.equal(config);
         },
         readFileSync: function() {
@@ -45,24 +45,24 @@ describe('#defaultConfig', function() {
     info.path.should.equal(home + '/.bitcore');
     info.config.network.should.equal('livenet');
     info.config.port.should.equal(3001);
-    info.config.services.should.deep.equal(['qtumd', 'web']);
-    var qtumd = info.config.servicesConfig.qtumd;
-    should.exist(qtumd);
-    qtumd.spawn.datadir.should.equal(home + '/.bitcore/data');
-    qtumd.spawn.exec.should.equal(expectedExecPath);
+    info.config.services.should.deep.equal(['berycoind', 'web']);
+    var berycoind = info.config.servicesConfig.berycoind;
+    should.exist(berycoind);
+    berycoind.spawn.datadir.should.equal(home + '/.bitcore/data');
+    berycoind.spawn.exec.should.equal(expectedExecPath);
   });
   it('will include additional services', function() {
     var config = JSON.stringify({
       network: 'livenet',
       port: 3001,
       services: [
-        'qtumd',
+        'berycoind',
         'web',
         'insight-api',
         'insight-ui'
       ],
       servicesConfig: {
-        qtumd: {
+        berycoind: {
           spawn: {
             datadir: process.env.HOME + '/.bitcore/data',
             exec: expectedExecPath
@@ -74,7 +74,7 @@ describe('#defaultConfig', function() {
       fs: {
         existsSync: sinon.stub().returns(false),
         writeFileSync: function(path, data) {
-          path.should.equal(process.env.HOME + '/.bitcore/qtumcore-node.json');
+          path.should.equal(process.env.HOME + '/.bitcore/berycoincore-node.json');
           data.should.equal(config);
         },
         readFileSync: function() {
@@ -93,14 +93,14 @@ describe('#defaultConfig', function() {
     info.config.network.should.equal('livenet');
     info.config.port.should.equal(3001);
     info.config.services.should.deep.equal([
-      'qtumd',
+      'berycoind',
       'web',
       'insight-api',
       'insight-ui'
     ]);
-    var qtumd = info.config.servicesConfig.qtumd;
-    should.exist(qtumd);
-      qtumd.spawn.datadir.should.equal(home + '/.bitcore/data');
-      qtumd.spawn.exec.should.equal(expectedExecPath);
+    var berycoind = info.config.servicesConfig.berycoind;
+    should.exist(berycoind);
+      berycoind.spawn.datadir.should.equal(home + '/.bitcore/data');
+      berycoind.spawn.exec.should.equal(expectedExecPath);
   });
 });

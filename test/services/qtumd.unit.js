@@ -6,8 +6,8 @@ var path = require('path');
 var EventEmitter = require('events').EventEmitter;
 var should = require('chai').should();
 var crypto = require('crypto');
-var qtumcore = require('qtumcore-lib');
-var _ = qtumcore.deps._;
+var berycoincore = require('berycoincore-lib');
+var _ = berycoincore.deps._;
 var sinon = require('sinon');
 var proxyquire = require('proxyquire');
 var fs = require('fs');
@@ -17,21 +17,21 @@ var index = require('../../lib');
 var log = index.log;
 var errors = index.errors;
 
-var Transaction = qtumcore.Transaction;
-var readFileSync = sinon.stub().returns(fs.readFileSync(path.resolve(__dirname, '../data/qtum.conf')));
-var QtumService = proxyquire('../../lib/services/qtumd', {
+var Transaction = berycoincore.Transaction;
+var readFileSync = sinon.stub().returns(fs.readFileSync(path.resolve(__dirname, '../data/berycoin.conf')));
+var BerycoinService = proxyquire('../../lib/services/berycoind', {
 	fs: {
 		readFileSync: readFileSync
 	}
 });
-var defaultQtumConf = fs.readFileSync(path.resolve(__dirname, '../data/default.qtum.conf'), 'utf8');
+var defaultBerycoinConf = fs.readFileSync(path.resolve(__dirname, '../data/default.berycoin.conf'), 'utf8');
 
-describe('Qtum Service', function() {
+describe('Berycoin Service', function() {
 	var txhex = '02000000018729e1903754b645c41cba1e5f9d9ccf9e3a1567c05def83c65f53157787bb19010000004847304402202379f2c157d515d525c9f14816be05747ac0bd385c2a32b0e882939fc3f81a530220720af854c1289fd0b034ff06f16e40db79f366ab3804314887e8f52d41f9991601ffffffff0b00000000000000000080119ff4020000002321034ac19f491683092a923138b52e2b36f2b7a182a931dd6a68d5641be37b78857fac005a6202000000001976a914e3c8033c2a416030ff221760542ba84ee5b9f43c88ac005a6202000000001976a914b6f603e399f673fee1ff82d27292a918f24b8e4a88ac005a6202000000001976a9148fde54e036a40c99c096dd65dfb29023bd96101288ac005a6202000000001976a9142e10fe88d6e075ad44a42f5c941599240aeba5fb88ac005a6202000000001976a914795607d424e0b6091b187cfa4a31a5b7a596791688ac005a6202000000001976a914edf2d506a7ba1966b858631accf8de3da157555688ac005a6202000000001976a9149d7c71eff196e749c5ec71277f50d4aef006e4f988ac005a6202000000001976a914c6c08d9ecb35760356219860553bfc7c19c26b4488ac005a6202000000001976a91439d41c6c7c944c196852928721ad2e623442e9ba88ac00000000';
 
 	var baseConfig = {
 		node: {
-			network: qtumcore.Networks.testnet
+			network: berycoincore.Networks.testnet
 		},
 		spawn: {
 			datadir: 'testdir',
@@ -41,69 +41,69 @@ describe('Qtum Service', function() {
 
 	describe('@constructor', function() {
 		it('will create an instance', function() {
-			var qtumd = new QtumService(baseConfig);
-			should.exist(qtumd);
+			var berycoind = new BerycoinService(baseConfig);
+			should.exist(berycoind);
 		});
 		it('will create an instance without `new`', function() {
-			var qtumd = QtumService(baseConfig);
-			should.exist(qtumd);
+			var berycoind = BerycoinService(baseConfig);
+			should.exist(berycoind);
 		});
 		it('will init caches', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			should.exist(qtumd.utxosCache);
-			should.exist(qtumd.txidsCache);
-			should.exist(qtumd.balanceCache);
-			should.exist(qtumd.summaryCache);
-			should.exist(qtumd.transactionDetailedCache);
-			should.exist(qtumd.accountInfo);
+			should.exist(berycoind.utxosCache);
+			should.exist(berycoind.txidsCache);
+			should.exist(berycoind.balanceCache);
+			should.exist(berycoind.summaryCache);
+			should.exist(berycoind.transactionDetailedCache);
+			should.exist(berycoind.accountInfo);
 
-			should.exist(qtumd.transactionCache);
-			should.exist(qtumd.rawTransactionCache);
-			should.exist(qtumd.rawJsonTransactionCache);
-			should.exist(qtumd.blockCache);
-			should.exist(qtumd.blockJsonCache);
-			should.exist(qtumd.blockSubsidyCache);
-			should.exist(qtumd.rawBlockCache);
-			should.exist(qtumd.blockHeaderCache);
-			should.exist(qtumd.zmqKnownTransactions);
-			should.exist(qtumd.zmqKnownBlocks);
-			should.exist(qtumd.lastTip);
-			should.exist(qtumd.lastTipTimeout);
-			should.equal(qtumd.dgpInfoCache, null, 'should be null');
-			should.equal(qtumd.miningInfoCache, null, 'should be null');
-			should.equal(qtumd.stakingInfoCache, null, 'should be null');
+			should.exist(berycoind.transactionCache);
+			should.exist(berycoind.rawTransactionCache);
+			should.exist(berycoind.rawJsonTransactionCache);
+			should.exist(berycoind.blockCache);
+			should.exist(berycoind.blockJsonCache);
+			should.exist(berycoind.blockSubsidyCache);
+			should.exist(berycoind.rawBlockCache);
+			should.exist(berycoind.blockHeaderCache);
+			should.exist(berycoind.zmqKnownTransactions);
+			should.exist(berycoind.zmqKnownBlocks);
+			should.exist(berycoind.lastTip);
+			should.exist(berycoind.lastTipTimeout);
+			should.equal(berycoind.dgpInfoCache, null, 'should be null');
+			should.equal(berycoind.miningInfoCache, null, 'should be null');
+			should.equal(berycoind.stakingInfoCache, null, 'should be null');
 
 			// limits
-			should.equal(qtumd.maxTxids, 1000);
-			should.equal(qtumd.maxTransactionHistory, 50);
-			should.equal(qtumd.maxAddressesQuery, 10000);
-			should.equal(qtumd.shutdownTimeout, 15000);
+			should.equal(berycoind.maxTxids, 1000);
+			should.equal(berycoind.maxTransactionHistory, 50);
+			should.equal(berycoind.maxAddressesQuery, 10000);
+			should.equal(berycoind.shutdownTimeout, 15000);
 
 			// spawn restart setting
-			should.equal(qtumd.spawnRestartTime, 5000);
-			should.equal(qtumd.spawnStopTime, 10000);
+			should.equal(berycoind.spawnRestartTime, 5000);
+			should.equal(berycoind.spawnStopTime, 10000);
 
 			// try all interval
-			should.equal(qtumd.tryAllInterval, 1000);
-			should.equal(qtumd.startRetryInterval, 5000);
+			should.equal(berycoind.tryAllInterval, 1000);
+			should.equal(berycoind.startRetryInterval, 5000);
 
 			// rpc limits
-			should.equal(qtumd.transactionConcurrency, 5);
+			should.equal(berycoind.transactionConcurrency, 5);
 
 			// sync progress level when zmq subscribes to events
-			should.equal(qtumd.zmqSubscribeProgress, 0.9999);
+			should.equal(berycoind.zmqSubscribeProgress, 0.9999);
 		});
 		it('will init clients', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.should.deep.equal([]);
-			qtumd.nodesIndex.should.equal(0);
-			qtumd.nodes.push({ client: sinon.stub() });
-			should.exist(qtumd.client);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.should.deep.equal([]);
+			berycoind.nodesIndex.should.equal(0);
+			berycoind.nodes.push({ client: sinon.stub() });
+			should.exist(berycoind.client);
 		});
 		it('will set subscriptions', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.subscriptions.should.deep.equal({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.subscriptions.should.deep.equal({
 				address: {},
 				rawtransaction: [],
 				hashblock: [],
@@ -114,24 +114,24 @@ describe('Qtum Service', function() {
 
 	describe('#_initDefaults', function() {
 		it('will set transaction concurrency', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._initDefaults({ transactionConcurrency: 10 });
-			qtumd.transactionConcurrency.should.equal(10);
-			qtumd._initDefaults({});
-			qtumd.transactionConcurrency.should.equal(5);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._initDefaults({ transactionConcurrency: 10 });
+			berycoind.transactionConcurrency.should.equal(10);
+			berycoind._initDefaults({});
+			berycoind.transactionConcurrency.should.equal(5);
 		});
 	});
 
 	describe('@dependencies', function() {
 		it('will have no dependencies', function() {
-			QtumService.dependencies.should.deep.equal([]);
+			BerycoinService.dependencies.should.deep.equal([]);
 		});
 	});
 
 	describe('#getAPIMethods', function() {
 		it('will return spec', function() {
-			var qtumd = new QtumService(baseConfig);
-			var methods = qtumd.getAPIMethods();
+			var berycoind = new BerycoinService(baseConfig);
+			var methods = berycoind.getAPIMethods();
 			should.exist(methods);
 			methods.length.should.equal(33);
 		});
@@ -139,53 +139,53 @@ describe('Qtum Service', function() {
 
 	describe('#getPublishEvents', function() {
 		it('will return spec', function() {
-			var qtumd = new QtumService(baseConfig);
-			var events = qtumd.getPublishEvents();
+			var berycoind = new BerycoinService(baseConfig);
+			var events = berycoind.getPublishEvents();
 			should.exist(events);
 			events.length.should.equal(4);
 
-			events[0].name.should.equal('qtumd/rawtransaction');
-			events[0].scope.should.equal(qtumd);
+			events[0].name.should.equal('berycoind/rawtransaction');
+			events[0].scope.should.equal(berycoind);
 			events[0].subscribe.should.be.a('function');
 			events[0].unsubscribe.should.be.a('function');
 
-			events[1].name.should.equal('qtumd/hashblock');
-			events[1].scope.should.equal(qtumd);
+			events[1].name.should.equal('berycoind/hashblock');
+			events[1].scope.should.equal(berycoind);
 			events[1].subscribe.should.be.a('function');
 			events[1].unsubscribe.should.be.a('function');
 
-			events[2].name.should.equal('qtumd/addresstxid');
-			events[2].scope.should.equal(qtumd);
+			events[2].name.should.equal('berycoind/addresstxid');
+			events[2].scope.should.equal(berycoind);
 			events[2].subscribe.should.be.a('function');
 			events[2].unsubscribe.should.be.a('function');
 
-			events[3].name.should.equal('qtumd/addressbalance');
-			events[3].scope.should.equal(qtumd);
+			events[3].name.should.equal('berycoind/addressbalance');
+			events[3].scope.should.equal(berycoind);
 			events[3].subscribe.should.be.a('function');
 			events[3].unsubscribe.should.be.a('function');
 
 		});
 		it('will call subscribe/unsubscribe with correct args', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.subscribe = sinon.stub();
-			qtumd.unsubscribe = sinon.stub();
-			var events = qtumd.getPublishEvents();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.subscribe = sinon.stub();
+			berycoind.unsubscribe = sinon.stub();
+			var events = berycoind.getPublishEvents();
 
 			events[0].subscribe('test');
-			qtumd.subscribe.args[0][0].should.equal('rawtransaction');
-			qtumd.subscribe.args[0][1].should.equal('test');
+			berycoind.subscribe.args[0][0].should.equal('rawtransaction');
+			berycoind.subscribe.args[0][1].should.equal('test');
 
 			events[0].unsubscribe('test');
-			qtumd.unsubscribe.args[0][0].should.equal('rawtransaction');
-			qtumd.unsubscribe.args[0][1].should.equal('test');
+			berycoind.unsubscribe.args[0][0].should.equal('rawtransaction');
+			berycoind.unsubscribe.args[0][1].should.equal('test');
 
 			events[1].subscribe('test');
-			qtumd.subscribe.args[1][0].should.equal('hashblock');
-			qtumd.subscribe.args[1][1].should.equal('test');
+			berycoind.subscribe.args[1][0].should.equal('hashblock');
+			berycoind.subscribe.args[1][1].should.equal('test');
 
 			events[1].unsubscribe('test');
-			qtumd.unsubscribe.args[1][0].should.equal('hashblock');
-			qtumd.unsubscribe.args[1][1].should.equal('test');
+			berycoind.unsubscribe.args[1][0].should.equal('hashblock');
+			berycoind.unsubscribe.args[1][1].should.equal('test');
 		});
 	});
 
@@ -198,14 +198,14 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will push to subscriptions', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter = {};
-			qtumd.subscribe('hashblock', emitter);
-			qtumd.subscriptions.hashblock[0].should.equal(emitter);
+			berycoind.subscribe('hashblock', emitter);
+			berycoind.subscriptions.hashblock[0].should.equal(emitter);
 
 			var emitter2 = {};
-			qtumd.subscribe('rawtransaction', emitter2);
-			qtumd.subscriptions.rawtransaction[0].should.equal(emitter2);
+			berycoind.subscribe('rawtransaction', emitter2);
+			berycoind.subscriptions.rawtransaction[0].should.equal(emitter2);
 		});
 	});
 
@@ -218,34 +218,34 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will remove item from subscriptions', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = {};
 			var emitter2 = {};
 			var emitter3 = {};
 			var emitter4 = {};
 			var emitter5 = {};
-			qtumd.subscribe('hashblock', emitter1);
-			qtumd.subscribe('hashblock', emitter2);
-			qtumd.subscribe('hashblock', emitter3);
-			qtumd.subscribe('hashblock', emitter4);
-			qtumd.subscribe('hashblock', emitter5);
-			qtumd.subscriptions.hashblock.length.should.equal(5);
+			berycoind.subscribe('hashblock', emitter1);
+			berycoind.subscribe('hashblock', emitter2);
+			berycoind.subscribe('hashblock', emitter3);
+			berycoind.subscribe('hashblock', emitter4);
+			berycoind.subscribe('hashblock', emitter5);
+			berycoind.subscriptions.hashblock.length.should.equal(5);
 
-			qtumd.unsubscribe('hashblock', emitter3);
-			qtumd.subscriptions.hashblock.length.should.equal(4);
-			qtumd.subscriptions.hashblock[0].should.equal(emitter1);
-			qtumd.subscriptions.hashblock[1].should.equal(emitter2);
-			qtumd.subscriptions.hashblock[2].should.equal(emitter4);
-			qtumd.subscriptions.hashblock[3].should.equal(emitter5);
+			berycoind.unsubscribe('hashblock', emitter3);
+			berycoind.subscriptions.hashblock.length.should.equal(4);
+			berycoind.subscriptions.hashblock[0].should.equal(emitter1);
+			berycoind.subscriptions.hashblock[1].should.equal(emitter2);
+			berycoind.subscriptions.hashblock[2].should.equal(emitter4);
+			berycoind.subscriptions.hashblock[3].should.equal(emitter5);
 		});
 		it('will not remove item an already unsubscribed item', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = {};
 			var emitter3 = {};
-			qtumd.subscriptions.hashblock = [emitter1];
-			qtumd.unsubscribe('hashblock', emitter3);
-			qtumd.subscriptions.hashblock.length.should.equal(1);
-			qtumd.subscriptions.hashblock[0].should.equal(emitter1);
+			berycoind.subscriptions.hashblock = [emitter1];
+			berycoind.unsubscribe('hashblock', emitter3);
+			berycoind.subscriptions.hashblock.length.should.equal(1);
+			berycoind.subscriptions.hashblock[0].should.equal(emitter1);
 		});
 	});
 
@@ -258,33 +258,33 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will not an invalid address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter = new EventEmitter();
-			qtumd.subscribeAddress(emitter, ['invalidaddress']);
-			should.not.exist(qtumd.subscriptions.address['invalidaddress']);
+			berycoind.subscribeAddress(emitter, ['invalidaddress']);
+			should.not.exist(berycoind.subscriptions.address['invalidaddress']);
 		});
 		it('will add a valid address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter = new EventEmitter();
-			qtumd.subscribeAddress(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeAddress(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 		});
 		it('will handle multiple address subscribers', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
 		});
 		it('will not add the same emitter twice', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
-			qtumd.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 		});
 	});
 
@@ -297,61 +297,61 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('it will remove a subscription', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
-			qtumd.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 		});
 		it('will unsubscribe subscriptions for an emitter', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeAddress(emitter1);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeAddress(emitter1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 		});
 		it('will NOT unsubscribe subscription with missing address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeAddress(emitter1, ['qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeAddress(emitter1, ['qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
 		});
 		it('will NOT unsubscribe subscription with missing emitter', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter2];
-			qtumd.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'][0].should.equal(emitter2);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter2];
+			berycoind.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'][0].should.equal(emitter2);
 		});
 		it('will remove empty addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.unsubscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.not.exist(qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeAddress(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.unsubscribeAddress(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.not.exist(berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 		});
 		it('will unsubscribe emitter for all addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
-			sinon.spy(qtumd, 'unsubscribeAddressAll');
-			qtumd.unsubscribeAddress(emitter1);
-			qtumd.unsubscribeAddressAll.callCount.should.equal(1);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
+			sinon.spy(berycoind, 'unsubscribeAddressAll');
+			berycoind.unsubscribeAddress(emitter1);
+			berycoind.unsubscribeAddressAll.callCount.should.equal(1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
 		});
 	});
 
@@ -364,26 +364,26 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will unsubscribe emitter for all addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
-			qtumd.subscriptions.address['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'] = [emitter2];
-			qtumd.subscriptions.address['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR'] = [emitter1];
-			qtumd.unsubscribeAddressAll(emitter1);
-			qtumd.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
-			qtumd.subscriptions.address['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'].length.should.equal(1);
-			should.not.exist(qtumd.subscriptions.address['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR']);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
+			berycoind.subscriptions.address['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'] = [emitter2];
+			berycoind.subscriptions.address['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR'] = [emitter1];
+			berycoind.unsubscribeAddressAll(emitter1);
+			berycoind.subscriptions.address['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.address['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
+			berycoind.subscriptions.address['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'].length.should.equal(1);
+			should.not.exist(berycoind.subscriptions.address['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR']);
 		});
 	});
 
 	describe('#_getDefaultConfig', function() {
 		it('will generate config file from defaults', function() {
-			var qtumd = new QtumService(baseConfig);
-			var config = qtumd._getDefaultConfig();
-			config.should.equal(defaultQtumConf);
+			var berycoind = new BerycoinService(baseConfig);
+			var config = berycoind._getDefaultConfig();
+			config.should.equal(defaultBerycoinConf);
 		});
 	});
 
@@ -397,8 +397,8 @@ describe('Qtum Service', function() {
 		});
 
 
-		it('will parse a qtum.conf file', function() {
-			var TestQtum = proxyquire('../../lib/services/qtumd', {
+		it('will parse a berycoin.conf file', function() {
+			var TestBerycoin = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync,
 					existsSync: sinon.stub().returns(true),
@@ -408,26 +408,26 @@ describe('Qtum Service', function() {
 					sync: sinon.stub()
 				}
 			});
-			var qtumd = new TestQtum(baseConfig);
-			qtumd.options.spawn.datadir = '/tmp/.qtum';
+			var berycoind = new TestBerycoin(baseConfig);
+			berycoind.options.spawn.datadir = '/tmp/.berycoin';
 
-			sinon.spy(qtumd, '_expandRelativeDatadir');
-			sinon.spy(qtumd, '_checkConfigIndexes');
-			sinon.spy(qtumd, '_getDefaultConf')
-			sinon.spy(qtumd, '_getNetworkConfigPath');
-			sinon.spy(qtumd, '_parseBitcoinConf');
+			sinon.spy(berycoind, '_expandRelativeDatadir');
+			sinon.spy(berycoind, '_checkConfigIndexes');
+			sinon.spy(berycoind, '_getDefaultConf')
+			sinon.spy(berycoind, '_getNetworkConfigPath');
+			sinon.spy(berycoind, '_parseBitcoinConf');
 
 			var node = {};
-			qtumd._loadSpawnConfiguration(node);
+			berycoind._loadSpawnConfiguration(node);
 
-			qtumd._expandRelativeDatadir.callCount.should.equal(1);
-			qtumd._checkConfigIndexes.callCount.should.equal(1);
-			qtumd._getDefaultConf.callCount.should.equal(1);
-			qtumd._getNetworkConfigPath.callCount.should.equal(1);
-			qtumd._parseBitcoinConf.callCount.should.equal(2);
+			berycoind._expandRelativeDatadir.callCount.should.equal(1);
+			berycoind._checkConfigIndexes.callCount.should.equal(1);
+			berycoind._getDefaultConf.callCount.should.equal(1);
+			berycoind._getNetworkConfigPath.callCount.should.equal(1);
+			berycoind._parseBitcoinConf.callCount.should.equal(2);
 
-			should.exist(qtumd.spawn.config);
-			qtumd.spawn.config.should.deep.equal({
+			should.exist(berycoind.spawn.config);
+			berycoind.spawn.config.should.deep.equal({
 				addressindex: 1,
 				checkblocks: 144,
 				dbcache: 8192,
@@ -435,8 +435,8 @@ describe('Qtum Service', function() {
 				port: 20000,
 				rpcport: 50001,
 				rpcallowip: '127.0.0.1',
-				rpcuser: 'qtum',
-				rpcpassword: 'qtumpassword',
+				rpcuser: 'berycoin',
+				rpcpassword: 'berycoinpassword',
 				server: 1,
 				spentindex: 1,
 				timestampindex: 1,
@@ -449,7 +449,7 @@ describe('Qtum Service', function() {
 		});
 
 		it('will expand relative datadir to absolute path', function() {
-			var TestQtum = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoin = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync,
 					existsSync: sinon.stub().returns(true),
@@ -461,54 +461,54 @@ describe('Qtum Service', function() {
 			});
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet,
-					configPath: '/tmp/.qtumcore/qtumcore-node.json'
+					network: berycoincore.Networks.testnet,
+					configPath: '/tmp/.berycoincore/berycoincore-node.json'
 				},
 				spawn: {
 					datadir: './data',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new TestQtum(config);
+			var berycoind = new TestBerycoin(config);
 
-			sinon.spy(qtumd, '_expandRelativeDatadir');
-			sinon.spy(qtumd, '_checkConfigIndexes');
-			sinon.spy(qtumd, '_getDefaultConf')
-			sinon.spy(qtumd, '_getNetworkConfigPath');
-			sinon.spy(qtumd, '_parseBitcoinConf');
+			sinon.spy(berycoind, '_expandRelativeDatadir');
+			sinon.spy(berycoind, '_checkConfigIndexes');
+			sinon.spy(berycoind, '_getDefaultConf')
+			sinon.spy(berycoind, '_getNetworkConfigPath');
+			sinon.spy(berycoind, '_parseBitcoinConf');
 
-			qtumd.options.spawn.datadir = './data';
+			berycoind.options.spawn.datadir = './data';
 			var node = {};
-			qtumd._loadSpawnConfiguration(node);
+			berycoind._loadSpawnConfiguration(node);
 
-			qtumd._expandRelativeDatadir.callCount.should.equal(1);
-			qtumd._checkConfigIndexes.callCount.should.equal(1);
-			qtumd._getDefaultConf.callCount.should.equal(1);
-			qtumd._getNetworkConfigPath.callCount.should.equal(1);
-			qtumd._parseBitcoinConf.callCount.should.equal(2);
+			berycoind._expandRelativeDatadir.callCount.should.equal(1);
+			berycoind._checkConfigIndexes.callCount.should.equal(1);
+			berycoind._getDefaultConf.callCount.should.equal(1);
+			berycoind._getNetworkConfigPath.callCount.should.equal(1);
+			berycoind._parseBitcoinConf.callCount.should.equal(2);
 
-			qtumd.options.spawn.datadir.should.equal('/tmp/.qtumcore/data');
+			berycoind.options.spawn.datadir.should.equal('/tmp/.berycoincore/data');
 		});
 		it('should throw an exception if txindex isn\'t enabled in the configuration', function() {
-			var TestQtum = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoin = proxyquire('../../lib/services/berycoind', {
 				fs: {
-					readFileSync: sinon.stub().returns(fs.readFileSync(__dirname + '/../data/badqtum.conf')),
+					readFileSync: sinon.stub().returns(fs.readFileSync(__dirname + '/../data/badberycoin.conf')),
 					existsSync: sinon.stub().returns(true),
 				},
 				mkdirp: {
 					sync: sinon.stub()
 				}
 			});
-			var qtumd = new TestQtum(baseConfig);
+			var berycoind = new TestBerycoin(baseConfig);
 			(function() {
-				qtumd._loadSpawnConfiguration({ datadir: './test' });
-			}).should.throw(qtumcore.errors.InvalidState);
+				berycoind._loadSpawnConfiguration({ datadir: './test' });
+			}).should.throw(berycoincore.errors.InvalidState);
 		});
 		it('should NOT set https options if node https options are set', function() {
 			var writeFileSync = function(path, config) {
-				config.should.equal(defaultQtumConf);
+				config.should.equal(defaultBerycoinConf);
 			};
-			var TestQtum = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoin = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					writeFileSync: writeFileSync,
 					readFileSync: readFileSync,
@@ -534,10 +534,10 @@ describe('Qtum Service', function() {
 					exec: 'testexec'
 				}
 			};
-			var qtumd = new TestQtum(config);
-			qtumd.options.spawn.datadir = '/tmp/.qtum';
+			var berycoind = new TestBerycoin(config);
+			berycoind.options.spawn.datadir = '/tmp/.berycoin';
 			var node = {};
-			qtumd._loadSpawnConfiguration(node);
+			berycoind._loadSpawnConfiguration(node);
 		});
 	});
 
@@ -549,8 +549,8 @@ describe('Qtum Service', function() {
 		afterEach(function() {
 			sandbox.restore();
 		});
-		it('should warn the user if txindex isn\'t set to 1 in the qtum.conf file', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('should warn the user if txindex isn\'t set to 1 in the berycoin.conf file', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 0,
 				addressindex: 1,
@@ -562,11 +562,11 @@ describe('Qtum Service', function() {
 			};
 			var node = {};
 			(function() {
-				qtumd._checkConfigIndexes(config, node);
+				berycoind._checkConfigIndexes(config, node);
 			}).should.throw('"txindex" option');
 		});
-		it('should warn the user if addressindex isn\'t set to 1 in the qtum.conf file', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('should warn the user if addressindex isn\'t set to 1 in the berycoin.conf file', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 1,
 				addressindex: 0,
@@ -578,11 +578,11 @@ describe('Qtum Service', function() {
 			};
 			var node = {};
 			(function() {
-				qtumd._checkConfigIndexes(config, node);
+				berycoind._checkConfigIndexes(config, node);
 			}).should.throw('"addressindex" option');
 		});
-		it('should warn the user if spentindex isn\'t set to 1 in the qtum.conf file', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('should warn the user if spentindex isn\'t set to 1 in the berycoin.conf file', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 1,
 				addressindex: 1,
@@ -594,11 +594,11 @@ describe('Qtum Service', function() {
 			};
 			var node = {};
 			(function() {
-				qtumd._checkConfigIndexes(config, node);
+				berycoind._checkConfigIndexes(config, node);
 			}).should.throw('"spentindex" option');
 		});
-		it('should warn the user if server isn\'t set to 1 in the qtum.conf file', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('should warn the user if server isn\'t set to 1 in the berycoin.conf file', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 1,
 				addressindex: 1,
@@ -610,11 +610,11 @@ describe('Qtum Service', function() {
 			};
 			var node = {};
 			(function() {
-				qtumd._checkConfigIndexes(config, node);
+				berycoind._checkConfigIndexes(config, node);
 			}).should.throw('"server" option');
 		});
-		it('should warn the user if reindex is set to 1 in the qtum.conf file', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('should warn the user if reindex is set to 1 in the berycoin.conf file', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 1,
 				addressindex: 1,
@@ -625,12 +625,12 @@ describe('Qtum Service', function() {
 				reindex: 1
 			};
 			var node = {};
-			qtumd._checkConfigIndexes(config, node);
+			berycoind._checkConfigIndexes(config, node);
 			log.warn.callCount.should.equal(1);
 			node._reindex.should.equal(true);
 		});
 		it('should warn if zmq port and hosts do not match', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var config = {
 				txindex: 1,
 				addressindex: 1,
@@ -642,124 +642,124 @@ describe('Qtum Service', function() {
 			};
 			var node = {};
 			(function() {
-				qtumd._checkConfigIndexes(config, node);
+				berycoind._checkConfigIndexes(config, node);
 			}).should.throw('"zmqpubrawtx" and "zmqpubhashblock"');
 		});
 	});
 
 	describe('#_resetCaches', function() {
 		it('will reset LRU caches', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var keys = [];
 			for (var i = 0; i < 10; i++) {
 				keys.push(crypto.randomBytes(32));
-				qtumd.transactionDetailedCache.set(keys[i], {});
-				qtumd.utxosCache.set(keys[i], {});
-				qtumd.accountInfo.set(keys[i], {});
-				qtumd.txidsCache.set(keys[i], {});
-				qtumd.balanceCache.set(keys[i], {});
-				qtumd.summaryCache.set(keys[i], {});
-				qtumd.blockOverviewCache.set(keys[i], {});
-				qtumd.blockJsonCache.set(keys[i], {});
+				berycoind.transactionDetailedCache.set(keys[i], {});
+				berycoind.utxosCache.set(keys[i], {});
+				berycoind.accountInfo.set(keys[i], {});
+				berycoind.txidsCache.set(keys[i], {});
+				berycoind.balanceCache.set(keys[i], {});
+				berycoind.summaryCache.set(keys[i], {});
+				berycoind.blockOverviewCache.set(keys[i], {});
+				berycoind.blockJsonCache.set(keys[i], {});
 			}
-			qtumd._resetCaches();
-			should.equal(qtumd.transactionDetailedCache.get(keys[0]), undefined);
-			should.equal(qtumd.utxosCache.get(keys[0]), undefined);
-			should.equal(qtumd.accountInfo.get(keys[0]), undefined);
-			should.equal(qtumd.txidsCache.get(keys[0]), undefined);
-			should.equal(qtumd.balanceCache.get(keys[0]), undefined);
-			should.equal(qtumd.summaryCache.get(keys[0]), undefined);
-			should.equal(qtumd.blockOverviewCache.get(keys[0]), undefined);
-			should.equal(qtumd.blockJsonCache.get(keys[0]), undefined);
+			berycoind._resetCaches();
+			should.equal(berycoind.transactionDetailedCache.get(keys[0]), undefined);
+			should.equal(berycoind.utxosCache.get(keys[0]), undefined);
+			should.equal(berycoind.accountInfo.get(keys[0]), undefined);
+			should.equal(berycoind.txidsCache.get(keys[0]), undefined);
+			should.equal(berycoind.balanceCache.get(keys[0]), undefined);
+			should.equal(berycoind.summaryCache.get(keys[0]), undefined);
+			should.equal(berycoind.blockOverviewCache.get(keys[0]), undefined);
+			should.equal(berycoind.blockJsonCache.get(keys[0]), undefined);
 
 
-			should.equal(qtumd.dgpInfoCache, null, 'should be null');
-			should.equal(qtumd.miningInfoCache, null, 'should be null');
-			should.equal(qtumd.stakingInfoCache, null, 'should be null');
+			should.equal(berycoind.dgpInfoCache, null, 'should be null');
+			should.equal(berycoind.miningInfoCache, null, 'should be null');
+			should.equal(berycoind.stakingInfoCache, null, 'should be null');
 		});
 	});
 
 	describe('#_tryAllClients', function() {
 		it('will retry for each node client', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('test'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('test'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArg(0)
 				}
 			});
-			qtumd._tryAllClients(function(client, next) {
+			berycoind._tryAllClients(function(client, next) {
 				client.getInfo(next);
 			}, function(err) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.nodes[0].client.getInfo.callCount.should.equal(1);
-				qtumd.nodes[1].client.getInfo.callCount.should.equal(1);
-				qtumd.nodes[2].client.getInfo.callCount.should.equal(1);
+				berycoind.nodes[0].client.getInfo.callCount.should.equal(1);
+				berycoind.nodes[1].client.getInfo.callCount.should.equal(1);
+				berycoind.nodes[2].client.getInfo.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will start using the current node index (round-robin)', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('2'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('3'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('1'))
 				}
 			});
-			qtumd.nodesIndex = 2;
-			qtumd._tryAllClients(function(client, next) {
+			berycoind.nodesIndex = 2;
+			berycoind._tryAllClients(function(client, next) {
 				client.getInfo(next);
 			}, function(err) {
 				err.should.be.instanceOf(Error);
 				err.message.should.equal('3');
-				qtumd.nodes[0].client.getInfo.callCount.should.equal(1);
-				qtumd.nodes[1].client.getInfo.callCount.should.equal(1);
-				qtumd.nodes[2].client.getInfo.callCount.should.equal(1);
-				qtumd.nodesIndex.should.equal(2);
+				berycoind.nodes[0].client.getInfo.callCount.should.equal(1);
+				berycoind.nodes[1].client.getInfo.callCount.should.equal(1);
+				berycoind.nodes[2].client.getInfo.callCount.should.equal(1);
+				berycoind.nodesIndex.should.equal(2);
 				done();
 			});
 		});
 		it('will get error if all clients fail', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('test'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('test'))
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: sinon.stub().callsArgWith(0, new Error('test'))
 				}
 			});
-			qtumd._tryAllClients(function(client, next) {
+			berycoind._tryAllClients(function(client, next) {
 				client.getInfo(next);
 			}, function(err) {
 				should.exist(err);
@@ -771,9 +771,9 @@ describe('Qtum Service', function() {
 	});
 
 	describe('#_wrapRPCError', function() {
-		it('will convert qtumd-rpc error object into JavaScript error', function() {
-			var qtumd = new QtumService(baseConfig);
-			var error = qtumd._wrapRPCError({ message: 'Test error', code: -1 });
+		it('will convert berycoind-rpc error object into JavaScript error', function() {
+			var berycoind = new BerycoinService(baseConfig);
+			var error = berycoind._wrapRPCError({ message: 'Test error', code: -1 });
 			error.should.be.an.instanceof(errors.RPCError);
 			error.code.should.equal(-1);
 			error.message.should.equal('Test error');
@@ -789,10 +789,10 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will set height and genesis buffer', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var genesisBuffer = new Buffer([]);
-			qtumd.getRawBlock = sinon.stub().callsArgWith(1, null, genesisBuffer);
-			qtumd.nodes.push({
+			berycoind.getRawBlock = sinon.stub().callsArgWith(1, null, genesisBuffer);
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: function(callback) {
 						callback(null, {
@@ -815,40 +815,40 @@ describe('Qtum Service', function() {
 					}
 				}
 			});
-			qtumd._initChain(function() {
+			berycoind._initChain(function() {
 				log.info.callCount.should.equal(1);
-				qtumd.getRawBlock.callCount.should.equal(1);
-				qtumd.getRawBlock.args[0][0].should.equal('genesishash');
-				qtumd.height.should.equal(5000);
-				qtumd.genesisBuffer.should.equal(genesisBuffer);
+				berycoind.getRawBlock.callCount.should.equal(1);
+				berycoind.getRawBlock.args[0][0].should.equal('genesishash');
+				berycoind.height.should.equal(5000);
+				berycoind.genesisBuffer.should.equal(genesisBuffer);
 				done();
 			});
 		});
 		it('it will handle error from getBestBlockHash', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, { code: -1, message: 'error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash
 				}
 			});
-			qtumd._initChain(function(err) {
+			berycoind._initChain(function(err) {
 				getBestBlockHash.callCount.should.equal(1);
 				err.should.be.instanceOf(Error);
 				done();
 			});
 		});
 		it('it will handle error from getBlock', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {});
 			var getBlock = sinon.stub().callsArgWith(1, { code: -1, message: 'error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash,
 					getBlock: getBlock
 				}
 			});
-			qtumd._initChain(function(err) {
+			berycoind._initChain(function(err) {
 				getBestBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
 				err.should.be.instanceOf(Error);
@@ -856,7 +856,7 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('it will handle error from getBlockHash', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {});
 			var getBlock = sinon.stub().callsArgWith(1, null, {
 				result: {
@@ -864,14 +864,14 @@ describe('Qtum Service', function() {
 				}
 			});
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash,
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._initChain(function(err) {
+			berycoind._initChain(function(err) {
 				err.should.be.instanceOf(Error);
 				getBestBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
@@ -880,7 +880,7 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('it will handle error from getRawBlock', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {});
 			var getBlock = sinon.stub().callsArgWith(1, null, {
 				result: {
@@ -888,20 +888,20 @@ describe('Qtum Service', function() {
 				}
 			});
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash,
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getRawBlock = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd._initChain(function(err) {
+			berycoind.getRawBlock = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind._initChain(function(err) {
 				err.should.be.instanceOf(Error);
 				getBestBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
-				qtumd.getRawBlock.callCount.should.equal(1);
+				berycoind.getRawBlock.callCount.should.equal(1);
 				done();
 			});
 		});
@@ -909,183 +909,183 @@ describe('Qtum Service', function() {
 
 	describe('#_getDefaultConf', function() {
 		afterEach(function() {
-			qtumcore.Networks.disableRegtest();
-			baseConfig.node.network = qtumcore.Networks.testnet;
+			berycoincore.Networks.disableRegtest();
+			baseConfig.node.network = berycoincore.Networks.testnet;
 		});
 		it('will get default rpc port for livenet', function() {
 			var config = {
 				node: {
-					network: qtumcore.Networks.livenet
+					network: berycoincore.Networks.livenet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd._getDefaultConf().rpcport.should.equal(8332);
+			var berycoind = new BerycoinService(config);
+			berycoind._getDefaultConf().rpcport.should.equal(8332);
 		});
 		it('will get default rpc port for testnet', function() {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd._getDefaultConf().rpcport.should.equal(18332);
+			var berycoind = new BerycoinService(config);
+			berycoind._getDefaultConf().rpcport.should.equal(18332);
 		});
 		it('will get default rpc port for regtest', function() {
-			qtumcore.Networks.enableRegtest();
+			berycoincore.Networks.enableRegtest();
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd._getDefaultConf().rpcport.should.equal(18332);
+			var berycoind = new BerycoinService(config);
+			berycoind._getDefaultConf().rpcport.should.equal(18332);
 		});
 	});
 
 	describe('#_getNetworkConfigPath', function() {
 		afterEach(function() {
-			qtumcore.Networks.disableRegtest();
-			baseConfig.node.network = qtumcore.Networks.testnet;
+			berycoincore.Networks.disableRegtest();
+			baseConfig.node.network = berycoincore.Networks.testnet;
 		});
 		it('will get default config path for livenet', function() {
 			var config = {
 				node: {
-					network: qtumcore.Networks.livenet
+					network: berycoincore.Networks.livenet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			should.equal(qtumd._getNetworkConfigPath(), undefined);
+			var berycoind = new BerycoinService(config);
+			should.equal(berycoind._getNetworkConfigPath(), undefined);
 		});
 		it('will get default rpc port for testnet', function() {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd._getNetworkConfigPath().should.equal('testnet3/qtum.conf');
+			var berycoind = new BerycoinService(config);
+			berycoind._getNetworkConfigPath().should.equal('testnet3/berycoin.conf');
 		});
 		it('will get default rpc port for regtest', function() {
-			qtumcore.Networks.enableRegtest();
+			berycoincore.Networks.enableRegtest();
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd._getNetworkConfigPath().should.equal('regtest/qtum.conf');
+			var berycoind = new BerycoinService(config);
+			berycoind._getNetworkConfigPath().should.equal('regtest/berycoin.conf');
 		});
 	});
 
 	describe('#_getNetworkOption', function() {
 		afterEach(function() {
-			qtumcore.Networks.disableRegtest();
-			baseConfig.node.network = qtumcore.Networks.testnet;
+			berycoincore.Networks.disableRegtest();
+			baseConfig.node.network = berycoincore.Networks.testnet;
 		});
 		it('return --testnet for testnet', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.node.network = qtumcore.Networks.testnet;
-			qtumd._getNetworkOption().should.equal('--testnet');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.node.network = berycoincore.Networks.testnet;
+			berycoind._getNetworkOption().should.equal('--testnet');
 		});
 		it('return --regtest for testnet', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.node.network = qtumcore.Networks.testnet;
-			qtumcore.Networks.enableRegtest();
-			qtumd._getNetworkOption().should.equal('--regtest');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.node.network = berycoincore.Networks.testnet;
+			berycoincore.Networks.enableRegtest();
+			berycoind._getNetworkOption().should.equal('--regtest');
 		});
 		it('return undefined for livenet', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.node.network = qtumcore.Networks.livenet;
-			qtumcore.Networks.enableRegtest();
-			should.equal(qtumd._getNetworkOption(), undefined);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.node.network = berycoincore.Networks.livenet;
+			berycoincore.Networks.enableRegtest();
+			should.equal(berycoind._getNetworkOption(), undefined);
 		});
 	});
 
 	describe('#_zmqBlockHandler', function() {
 		it('will emit block', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
 			var message = new Buffer('76843f1dfe455347d897e757ff5ff51a16a0f62b5d02a659c5680392de3a2b89', 'hex');
-			qtumd._rapidProtectedUpdateTip = sinon.stub();
-			qtumd.on('block', function(block) {
+			berycoind._rapidProtectedUpdateTip = sinon.stub();
+			berycoind.on('block', function(block) {
 				block.should.equal(message);
 				done();
 			});
-			qtumd._zmqBlockHandler(node, message);
-			qtumd._rapidProtectedUpdateTip.callCount.should.equal(1);
+			berycoind._zmqBlockHandler(node, message);
+			berycoind._rapidProtectedUpdateTip.callCount.should.equal(1);
 		});
 		it('will not emit same block twice', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
 			var message = new Buffer('76843f1dfe455347d897e757ff5ff51a16a0f62b5d02a659c5680392de3a2b89', 'hex');
-			qtumd._rapidProtectedUpdateTip = sinon.stub();
-			sinon.spy(qtumd, 'emit');
-			qtumd.on('block', function(block) {
+			berycoind._rapidProtectedUpdateTip = sinon.stub();
+			sinon.spy(berycoind, 'emit');
+			berycoind.on('block', function(block) {
 				block.should.equal(message);
-				qtumd.emit.callCount.should.equal(1);
-				qtumd._rapidProtectedUpdateTip.callCount.should.equal(1);
+				berycoind.emit.callCount.should.equal(1);
+				berycoind._rapidProtectedUpdateTip.callCount.should.equal(1);
 				done();
 			});
-			qtumd._zmqBlockHandler(node, message);
-			qtumd._zmqBlockHandler(node, message);
+			berycoind._zmqBlockHandler(node, message);
+			berycoind._zmqBlockHandler(node, message);
 		});
 		it('will call function to update tip', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
 			var message = new Buffer('76843f1dfe455347d897e757ff5ff51a16a0f62b5d02a659c5680392de3a2b89', 'hex');
-			qtumd._rapidProtectedUpdateTip = sinon.stub();
-			qtumd._zmqBlockHandler(node, message);
-			qtumd._rapidProtectedUpdateTip.callCount.should.equal(1);
-			qtumd._rapidProtectedUpdateTip.args[0][0].should.equal(node);
-			qtumd._rapidProtectedUpdateTip.args[0][1].should.equal(message);
+			berycoind._rapidProtectedUpdateTip = sinon.stub();
+			berycoind._zmqBlockHandler(node, message);
+			berycoind._rapidProtectedUpdateTip.callCount.should.equal(1);
+			berycoind._rapidProtectedUpdateTip.args[0][0].should.equal(node);
+			berycoind._rapidProtectedUpdateTip.args[0][1].should.equal(message);
 		});
 		it('will emit to subscribers', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
 			var message = new Buffer('76843f1dfe455347d897e757ff5ff51a16a0f62b5d02a659c5680392de3a2b89', 'hex');
-			qtumd._rapidProtectedUpdateTip = sinon.stub();
-			sinon.spy(qtumd, 'emit');
+			berycoind._rapidProtectedUpdateTip = sinon.stub();
+			sinon.spy(berycoind, 'emit');
 			var emitter = new EventEmitter();
-			qtumd.subscriptions.hashblock.push(emitter);
-			emitter.on('qtumd/hashblock', function(blockHash) {
-				qtumd._rapidProtectedUpdateTip.callCount.should.equal(1);
-				qtumd.emit.callCount.should.equal(1);
+			berycoind.subscriptions.hashblock.push(emitter);
+			emitter.on('berycoind/hashblock', function(blockHash) {
+				berycoind._rapidProtectedUpdateTip.callCount.should.equal(1);
+				berycoind.emit.callCount.should.equal(1);
 				blockHash.should.equal(message.toString('hex'));
 				done();
 			});
-			qtumd._zmqBlockHandler(node, message);
+			berycoind._zmqBlockHandler(node, message);
 		});
 	});
 
 	describe('#_rapidProtectedUpdateTip', function() {
 		it('will limit tip updates with rapid calls', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var callCount = 0;
-			qtumd._updateTip = function() {
+			berycoind._updateTip = function() {
 				callCount++;
 				callCount.should.be.within(1, 2);
 				if (callCount > 1) {
@@ -1096,7 +1096,7 @@ describe('Qtum Service', function() {
 			var message = new Buffer('76843f1dfe455347d897e757ff5ff51a16a0f62b5d02a659c5680392de3a2b89', 'hex');
 			var count = 0;
 			function repeat() {
-				qtumd._rapidProtectedUpdateTip(node, message);
+				berycoind._rapidProtectedUpdateTip(node, message);
 				count++;
 				if (count < 50) {
 					repeat();
@@ -1117,14 +1117,14 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('log and emit rpc error from get block', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub();
-			sinon.spy(qtumd, '_resetCaches');
-			qtumd.on('error', function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub();
+			sinon.spy(berycoind, '_resetCaches');
+			berycoind.on('error', function(err) {
 				err.code.should.equal(-1);
 				err.message.should.equal('Test error');
 				node.client.getBlock.callCount.should.equal(1);
-				qtumd._resetCaches.callCount.should.equal(1);
+				berycoind._resetCaches.callCount.should.equal(1);
 				log.error.callCount.should.equal(1);
 				done();
 			});
@@ -1133,13 +1133,13 @@ describe('Qtum Service', function() {
 					getBlock: sinon.stub().callsArgWith(1, { message: 'Test error', code: -1 })
 				}
 			};
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 		it('emit synced if percentage is 100', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 100);
-			qtumd.on('synced', function() {
-				qtumd.syncPercentage.callCount.should.equal(1);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 100);
+			berycoind.on('synced', function() {
+				berycoind.syncPercentage.callCount.should.equal(1);
 				node.client.getBlock.callCount.should.equal(1);
 				done();
 			});
@@ -1148,13 +1148,13 @@ describe('Qtum Service', function() {
 					getBlock: sinon.stub()
 				}
 			};
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 		it('NOT emit synced if percentage is less than 100', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 99);
-			qtumd.on('synced', function() {
-				qtumd.syncPercentage.callCount.should.equal(0);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 99);
+			berycoind.on('synced', function() {
+				berycoind.syncPercentage.callCount.should.equal(0);
 				node.client.getBlock.callCount.should.equal(1);
 				throw new Error('Synced called');
 			});
@@ -1163,16 +1163,16 @@ describe('Qtum Service', function() {
 					getBlock: sinon.stub()
 				}
 			};
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 			log.info.callCount.should.equal(1);
 			done();
 		});
 		it('log and emit error from syncPercentage', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, new Error('test'));
-			qtumd.on('error', function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, new Error('test'));
+			berycoind.on('error', function(err) {
 				log.error.callCount.should.equal(1);
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				node.client.getBlock.callCount.should.equal(1);
 				err.message.should.equal('test');
 				done();
@@ -1182,16 +1182,16 @@ describe('Qtum Service', function() {
 					getBlock: sinon.stub()
 				}
 			};
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 		it('reset caches and set height', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub();
-			qtumd._resetCaches = sinon.stub();
-			qtumd.on('tip', function(height) {
-				qtumd._resetCaches.callCount.should.equal(1);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub();
+			berycoind._resetCaches = sinon.stub();
+			berycoind.on('tip', function(height) {
+				berycoind._resetCaches.callCount.should.equal(1);
 				height.should.equal(10);
-				qtumd.height.should.equal(10);
+				berycoind.height.should.equal(10);
 				done();
 			});
 			var node = {
@@ -1203,15 +1203,15 @@ describe('Qtum Service', function() {
 					})
 				}
 			};
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 		it('will NOT update twice for the same hash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, 'emit');
-			qtumd.syncPercentage = sinon.stub();
-			qtumd._resetCaches = sinon.stub();
-			qtumd.on('tip', function() {
-				qtumd._resetCaches.callCount.should.equal(1);
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, 'emit');
+			berycoind.syncPercentage = sinon.stub();
+			berycoind._resetCaches = sinon.stub();
+			berycoind.on('tip', function() {
+				berycoind._resetCaches.callCount.should.equal(1);
 				done();
 			});
 			var node = {
@@ -1223,23 +1223,23 @@ describe('Qtum Service', function() {
 					})
 				}
 			};
-			qtumd._updateTip(node, message);
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 		it('will not call syncPercentage if node is stopping', function(done) {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd.syncPercentage = sinon.stub();
-			qtumd._resetCaches = sinon.stub();
-			qtumd.node.stopping = true;
+			var berycoind = new BerycoinService(config);
+			berycoind.syncPercentage = sinon.stub();
+			berycoind._resetCaches = sinon.stub();
+			berycoind.node.stopping = true;
 			var node = {
 				client: {
 					getBlock: sinon.stub().callsArgWith(1, null, {
@@ -1249,160 +1249,160 @@ describe('Qtum Service', function() {
 					})
 				}
 			};
-			qtumd.on('tip', function() {
-				qtumd.syncPercentage.callCount.should.equal(0);
+			berycoind.on('tip', function() {
+				berycoind.syncPercentage.callCount.should.equal(0);
 				done();
 			});
-			qtumd._updateTip(node, message);
+			berycoind._updateTip(node, message);
 		});
 	});
 
 	describe('#_getAddressesFromTransaction', function() {
-		it('will get results using qtumcore.Transaction', function() {
-			var qtumd = new QtumService(baseConfig);
+		it('will get results using berycoincore.Transaction', function() {
+			var berycoind = new BerycoinService(baseConfig);
 			var wif = 'cVTiUNavxbCzuoaQboDcgEhKYHhgXRaeQ8ZRoYkVXE9mxT1TcSrc';
-			var privkey = qtumcore.PrivateKey.fromWIF(wif);
-			var inputAddress = privkey.toAddress(qtumcore.Networks.testnet);
-			var outputAddress = qtumcore.Address('qMDYc9oXQK19dmLSCQNs5okRt8z4XeMr1X');
-			var tx = qtumcore.Transaction();
+			var privkey = berycoincore.PrivateKey.fromWIF(wif);
+			var inputAddress = privkey.toAddress(berycoincore.Networks.testnet);
+			var outputAddress = berycoincore.Address('qMDYc9oXQK19dmLSCQNs5okRt8z4XeMr1X');
+			var tx = berycoincore.Transaction();
 			tx.from({
 				txid: '63ea7d22cb412283f4c6964a0fddebf3069f2e8a4761e86b5d0e2a39b0e84e5c',
 				outputIndex: 0,
-				script: qtumcore.Script(inputAddress),
+				script: berycoincore.Script(inputAddress),
 				address: inputAddress.toString(),
 				satoshis: 5000000000
 			});
 			tx.to(outputAddress, 5000000000);
 			tx.sign(privkey);
-			var addresses = qtumd._getAddressesFromTransaction(tx);
+			var addresses = berycoind._getAddressesFromTransaction(tx);
 			addresses.length.should.equal(2);
 			addresses[0].should.equal(inputAddress.toString());
 			addresses[1].should.equal(outputAddress.toString());
 		});
 		it('will handle non-standard script types', function() {
-			var qtumd = new QtumService(baseConfig);
-			var tx = qtumcore.Transaction();
-			tx.addInput(qtumcore.Transaction.Input({
+			var berycoind = new BerycoinService(baseConfig);
+			var tx = berycoincore.Transaction();
+			tx.addInput(berycoincore.Transaction.Input({
 				prevTxId: '63ea7d22cb412283f4c6964a0fddebf3069f2e8a4761e86b5d0e2a39b0e84e5c',
-				script: qtumcore.Script('OP_TRUE'),
+				script: berycoincore.Script('OP_TRUE'),
 				outputIndex: 1,
 				output: {
-					script: qtumcore.Script('OP_TRUE'),
+					script: berycoincore.Script('OP_TRUE'),
 					satoshis: 5000000000
 				}
 			}));
-			tx.addOutput(qtumcore.Transaction.Output({
-				script: qtumcore.Script('OP_TRUE'),
+			tx.addOutput(berycoincore.Transaction.Output({
+				script: berycoincore.Script('OP_TRUE'),
 				satoshis: 5000000000
 			}));
-			var addresses = qtumd._getAddressesFromTransaction(tx);
+			var addresses = berycoind._getAddressesFromTransaction(tx);
 			addresses.length.should.equal(0);
 		});
 		it('will handle unparsable script types or missing input script', function() {
-			var qtumd = new QtumService(baseConfig);
-			var tx = qtumcore.Transaction();
-			tx.addOutput(qtumcore.Transaction.Output({
+			var berycoind = new BerycoinService(baseConfig);
+			var tx = berycoincore.Transaction();
+			tx.addOutput(berycoincore.Transaction.Output({
 				script: new Buffer('4c', 'hex'),
 				satoshis: 5000000000
 			}));
-			var addresses = qtumd._getAddressesFromTransaction(tx);
+			var addresses = berycoind._getAddressesFromTransaction(tx);
 			addresses.length.should.equal(0);
 		});
 		it('will return unique values', function() {
-			var qtumd = new QtumService(baseConfig);
-			var tx = qtumcore.Transaction();
-			var address = qtumcore.Address('qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX');
-			tx.addOutput(qtumcore.Transaction.Output({
-				script: qtumcore.Script(address),
+			var berycoind = new BerycoinService(baseConfig);
+			var tx = berycoincore.Transaction();
+			var address = berycoincore.Address('qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX');
+			tx.addOutput(berycoincore.Transaction.Output({
+				script: berycoincore.Script(address),
 				satoshis: 5000000000
 			}));
-			tx.addOutput(qtumcore.Transaction.Output({
-				script: qtumcore.Script(address),
+			tx.addOutput(berycoincore.Transaction.Output({
+				script: berycoincore.Script(address),
 				satoshis: 5000000000
 			}));
-			var addresses = qtumd._getAddressesFromTransaction(tx);
+			var addresses = berycoind._getAddressesFromTransaction(tx);
 			addresses.length.should.equal(1);
 		});
 	});
 
 	describe('#_notifyAddressTxidSubscribers', function() {
 		it('will emit event if matching addresses', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var address = 'qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z';
-			qtumd._getAddressesFromTransaction = sinon.stub().returns([address]);
+			berycoind._getAddressesFromTransaction = sinon.stub().returns([address]);
 			var emitter = new EventEmitter();
-			qtumd.subscriptions.address[address] = [emitter];
+			berycoind.subscriptions.address[address] = [emitter];
 			var txid = 'a9f5d9dc39bfff65c12d8a7a8263f57cc187d4c6cc62815d65186726bbc5ecb5';
 			var transaction = {};
-			emitter.on('qtumd/addresstxid', function(data) {
+			emitter.on('berycoind/addresstxid', function(data) {
 				data.address.should.equal(address);
 				data.txid.should.equal(txid);
 				emitter.emit.callCount.should.equal(1);
 				done();
 			});
 			sinon.spy(emitter, 'emit');
-			qtumd._notifyAddressTxidSubscribers(txid, transaction);
+			berycoind._notifyAddressTxidSubscribers(txid, transaction);
 		});
 		it('will NOT emit event without matching addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var address = 'qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z';
-			qtumd._getAddressesFromTransaction = sinon.stub().returns([address]);
+			berycoind._getAddressesFromTransaction = sinon.stub().returns([address]);
 			var emitter = new EventEmitter();
 			var txid = 'a9f5d9dc39bfff65c12d8a7a8263f57cc187d4c6cc62815d65186726bbc5ecb5';
 			var transaction = {};
 			emitter.emit = sinon.stub();
-			qtumd._notifyAddressTxidSubscribers(txid, transaction);
+			berycoind._notifyAddressTxidSubscribers(txid, transaction);
 			emitter.emit.callCount.should.equal(0);
 		});
 	});
 
 	describe('#_zmqTransactionHandler', function() {
 		it('will emit to subscribers', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedBuffer = new Buffer(txhex, 'hex');
 			var emitter = new EventEmitter();
-			qtumd.subscriptions.rawtransaction.push(emitter);
-			emitter.on('qtumd/rawtransaction', function(hex) {
+			berycoind.subscriptions.rawtransaction.push(emitter);
+			emitter.on('berycoind/rawtransaction', function(hex) {
 				hex.should.be.a('string');
 				hex.should.equal(expectedBuffer.toString('hex'));
 				done();
 			});
 			var node = {};
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
 		});
 		it('will NOT emit to subscribers more than once for the same tx', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedBuffer = new Buffer(txhex, 'hex');
 			var emitter = new EventEmitter();
-			sinon.spy(qtumd, 'emit');
-			qtumd.subscriptions.rawtransaction.push(emitter);
-			emitter.on('qtumd/rawtransaction', function() {
+			sinon.spy(berycoind, 'emit');
+			berycoind.subscriptions.rawtransaction.push(emitter);
+			emitter.on('berycoind/rawtransaction', function() {
 				done();
 			});
 			var node = {};
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
 		});
 		it('will emit "tx" event', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedBuffer = new Buffer(txhex, 'hex');
-			qtumd.on('tx', function(buffer) {
+			berycoind.on('tx', function(buffer) {
 				buffer.should.be.instanceof(Buffer);
 				buffer.toString('hex').should.equal(expectedBuffer.toString('hex'));
 				done();
 			});
 			var node = {};
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
 		});
 		it('will NOT emit "tx" event more than once for the same tx', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedBuffer = new Buffer(txhex, 'hex');
-			qtumd.on('tx', function() {
+			berycoind.on('tx', function() {
 				done();
 			});
 			var node = {};
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
-			qtumd._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
+			berycoind._zmqTransactionHandler(node, expectedBuffer);
 		});
 	});
 
@@ -1415,11 +1415,11 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('log errors, update tip and subscribe to zmq events', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._updateTip = sinon.stub();
-			qtumd._subscribeZmqEvents = sinon.stub();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._updateTip = sinon.stub();
+			berycoind._subscribeZmqEvents = sinon.stub();
 			var blockEvents = 0;
-			qtumd.on('block', function() {
+			berycoind.on('block', function() {
 				blockEvents++;
 			});
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {
@@ -1450,28 +1450,28 @@ describe('Qtum Service', function() {
 					getBlockchainInfo: getBlockchainInfo
 				}
 			};
-			qtumd._checkSyncedAndSubscribeZmqEvents(node);
+			berycoind._checkSyncedAndSubscribeZmqEvents(node);
 			setTimeout(function() {
 				log.error.callCount.should.equal(2);
 				blockEvents.should.equal(11);
 				getBestBlockHash.callCount.should.equal(12);
 				getBlockchainInfo.callCount.should.equal(11);
-				qtumd._updateTip.callCount.should.equal(11);
-				qtumd._subscribeZmqEvents.callCount.should.equal(1);
+				berycoind._updateTip.callCount.should.equal(11);
+				berycoind._subscribeZmqEvents.callCount.should.equal(1);
 				done();
 			}, 200);
 		});
 		it('it will clear interval if node is stopping', function(done) {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
+			var berycoind = new BerycoinService(config);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, { code: -1, message: 'error' });
 			var node = {
 				_tipUpdateInterval: 1,
@@ -1479,9 +1479,9 @@ describe('Qtum Service', function() {
 					getBestBlockHash: getBestBlockHash
 				}
 			};
-			qtumd._checkSyncedAndSubscribeZmqEvents(node);
+			berycoind._checkSyncedAndSubscribeZmqEvents(node);
 			setTimeout(function() {
-				qtumd.node.stopping = true;
+				berycoind.node.stopping = true;
 				var count = getBestBlockHash.callCount;
 				setTimeout(function() {
 					getBestBlockHash.callCount.should.equal(count);
@@ -1491,9 +1491,9 @@ describe('Qtum Service', function() {
 		});
 
 		it('will not set interval if synced is true', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._updateTip = sinon.stub();
-			qtumd._subscribeZmqEvents = sinon.stub();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._updateTip = sinon.stub();
+			berycoind._subscribeZmqEvents = sinon.stub();
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {
 				result: 'fa1e9c65bce09d3bf7e067e1053779ae7dd7742c3dbba2e6c82dc7783a21fb2c'
 			});
@@ -1510,7 +1510,7 @@ describe('Qtum Service', function() {
 					getBlockchainInfo: getBlockchainInfo
 				}
 			};
-			qtumd._checkSyncedAndSubscribeZmqEvents(node);
+			berycoind._checkSyncedAndSubscribeZmqEvents(node);
 			setTimeout(function() {
 				getBestBlockHash.callCount.should.equal(1);
 				getBlockchainInfo.callCount.should.equal(1);
@@ -1521,29 +1521,29 @@ describe('Qtum Service', function() {
 
 	describe('#_subscribeZmqEvents', function() {
 		it('will call subscribe on zmq socket', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {
 				zmqSubSocket: {
 					subscribe: sinon.stub(),
 					on: sinon.stub()
 				}
 			};
-			qtumd._subscribeZmqEvents(node);
+			berycoind._subscribeZmqEvents(node);
 			node.zmqSubSocket.subscribe.callCount.should.equal(2);
 			node.zmqSubSocket.subscribe.args[0][0].should.equal('hashblock');
 			node.zmqSubSocket.subscribe.args[1][0].should.equal('rawtx');
 		});
 
 		it('will call relevant handler for rawtx topics', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._zmqTransactionHandler = sinon.stub();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._zmqTransactionHandler = sinon.stub();
 			var node = {
 				zmqSubSocket: new EventEmitter()
 			};
 			node.zmqSubSocket.subscribe = sinon.stub();
-			qtumd._subscribeZmqEvents(node);
+			berycoind._subscribeZmqEvents(node);
 			node.zmqSubSocket.on('message', function() {
-				qtumd._zmqTransactionHandler.callCount.should.equal(1);
+				berycoind._zmqTransactionHandler.callCount.should.equal(1);
 				done();
 			});
 			var topic = new Buffer('rawtx', 'utf8');
@@ -1551,15 +1551,15 @@ describe('Qtum Service', function() {
 			node.zmqSubSocket.emit('message', topic, message);
 		});
 		it('will call relevant handler for hashblock topics', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._zmqBlockHandler = sinon.stub();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._zmqBlockHandler = sinon.stub();
 			var node = {
 				zmqSubSocket: new EventEmitter()
 			};
 			node.zmqSubSocket.subscribe = sinon.stub();
-			qtumd._subscribeZmqEvents(node);
+			berycoind._subscribeZmqEvents(node);
 			node.zmqSubSocket.on('message', function() {
-				qtumd._zmqBlockHandler.callCount.should.equal(1);
+				berycoind._zmqBlockHandler.callCount.should.equal(1);
 				done();
 			});
 			var topic = new Buffer('hashblock', 'utf8');
@@ -1567,17 +1567,17 @@ describe('Qtum Service', function() {
 			node.zmqSubSocket.emit('message', topic, message);
 		});
 		it('will ignore unknown topic types', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._zmqBlockHandler = sinon.stub();
-			qtumd._zmqTransactionHandler = sinon.stub();
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._zmqBlockHandler = sinon.stub();
+			berycoind._zmqTransactionHandler = sinon.stub();
 			var node = {
 				zmqSubSocket: new EventEmitter()
 			};
 			node.zmqSubSocket.subscribe = sinon.stub();
-			qtumd._subscribeZmqEvents(node);
+			berycoind._subscribeZmqEvents(node);
 			node.zmqSubSocket.on('message', function() {
-				qtumd._zmqBlockHandler.callCount.should.equal(0);
-				qtumd._zmqTransactionHandler.callCount.should.equal(0);
+				berycoind._zmqBlockHandler.callCount.should.equal(0);
+				berycoind._zmqTransactionHandler.callCount.should.equal(0);
 				done();
 			});
 			var topic = new Buffer('unknown', 'utf8');
@@ -1594,14 +1594,14 @@ describe('Qtum Service', function() {
 			var socketFunc = function() {
 				return socket;
 			};
-			var QtumService = proxyquire('../../lib/services/qtumd', {
+			var BerycoinService = proxyquire('../../lib/services/berycoind', {
 				zmq: {
 					socket: socketFunc
 				}
 			});
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
-			qtumd._initZmqSubSocket(node, 'url');
+			berycoind._initZmqSubSocket(node, 'url');
 			node.zmqSubSocket.should.equal(socket);
 			socket.connect.callCount.should.equal(1);
 			socket.connect.args[0][0].should.equal('url');
@@ -1620,7 +1620,7 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('give error from client getblockchaininfo', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {
 				_reindex: true,
 				_reindexWait: 1,
@@ -1628,7 +1628,7 @@ describe('Qtum Service', function() {
 					getBlockchainInfo: sinon.stub().callsArgWith(0, { code: -1, message: 'Test error' })
 				}
 			};
-			qtumd._checkReindex(node, function(err) {
+			berycoind._checkReindex(node, function(err) {
 				should.exist(err);
 				node.client.getBlockchainInfo.callCount.should.equal(1);
 				err.should.be.instanceof(errors.RPCError);
@@ -1636,7 +1636,7 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will wait until sync is 100 percent', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var percent = 0.89;
 			var node = {
 				_reindex: true,
@@ -1652,18 +1652,18 @@ describe('Qtum Service', function() {
 					}
 				}
 			};
-			qtumd._checkReindex(node, function() {
+			berycoind._checkReindex(node, function() {
 				node._reindex.should.equal(false);
 				log.info.callCount.should.equal(11);
 				done();
 			});
 		});
 		it('will call callback if reindex is not enabled', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {
 				_reindex: false
 			};
-			qtumd._checkReindex(node, function() {
+			berycoind._checkReindex(node, function() {
 				node._reindex.should.equal(false);
 				done();
 			});
@@ -1679,21 +1679,21 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will give rpc error from client getbestblockhash', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, { code: -1, message: 'Test error' });
 			var node = {
 				client: {
 					getBestBlockHash: getBestBlockHash
 				}
 			};
-			qtumd._loadTipFromNode(node, function(err) {
+			berycoind._loadTipFromNode(node, function(err) {
 				err.should.be.instanceof(Error);
 				log.warn.callCount.should.equal(0);
 				done();
 			});
 		});
 		it('will give rpc error from client getblock', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {
 				result: '45c766f3deda5027e99df3f4b437ca1874143efdddcc09261f9e7466a4b38629'
 			});
@@ -1704,7 +1704,7 @@ describe('Qtum Service', function() {
 					getBlock: getBlock
 				}
 			};
-			qtumd._loadTipFromNode(node, function(err) {
+			berycoind._loadTipFromNode(node, function(err) {
 				getBlock.args[0][0].should.equal('45c766f3deda5027e99df3f4b437ca1874143efdddcc09261f9e7466a4b38629');
 				err.should.be.instanceof(Error);
 				log.warn.callCount.should.equal(0);
@@ -1712,21 +1712,21 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will log when error is RPC_IN_WARMUP', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, { code: -28, message: 'Verifying blocks...' });
 			var node = {
 				client: {
 					getBestBlockHash: getBestBlockHash
 				}
 			};
-			qtumd._loadTipFromNode(node, function(err) {
+			berycoind._loadTipFromNode(node, function(err) {
 				err.should.be.instanceof(Error);
 				log.warn.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will set height and emit tip', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {
 				result: '45c766f3deda5027e99df3f4b437ca1874143efdddcc09261f9e7466a4b38629'
 			});
@@ -1741,14 +1741,14 @@ describe('Qtum Service', function() {
 					getBlock: getBlock
 				}
 			};
-			qtumd.on('tip', function(height) {
+			berycoind.on('tip', function(height) {
 				node.client.getBestBlockHash.callCount.should.equal(1);
 				node.client.getBlock.callCount.should.equal(1);
 				height.should.equal(100);
-				qtumd.height.should.equal(100);
+				berycoind.height.should.equal(100);
 				done();
 			});
-			qtumd._loadTipFromNode(node, function(err) {
+			berycoind._loadTipFromNode(node, function(err) {
 				if (err) {
 					return done(err);
 				}
@@ -1770,20 +1770,20 @@ describe('Qtum Service', function() {
 			var error = new Error('Test error');
 			error.code = 'ENOENT';
 			readFile.onCall(1).callsArgWith(2, error);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFile: readFile
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd.spawnStopTime = 1;
-			qtumd._process = {};
-			qtumd._process.kill = sinon.stub();
-			qtumd._stopSpawnedBitcoin(function(err) {
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind.spawnStopTime = 1;
+			berycoind._process = {};
+			berycoind._process.kill = sinon.stub();
+			berycoind._stopSpawnedBitcoin(function(err) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._process.kill.callCount.should.equal(1);
+				berycoind._process.kill.callCount.should.equal(1);
 				log.warn.callCount.should.equal(1);
 				done();
 			});
@@ -1794,22 +1794,22 @@ describe('Qtum Service', function() {
 			var error = new Error('Test error');
 			error.code = 'ENOENT';
 			readFile.onCall(1).callsArgWith(2, error);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFile: readFile
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd.spawnStopTime = 1;
-			qtumd._process = {};
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind.spawnStopTime = 1;
+			berycoind._process = {};
 			var error2 = new Error('Test error');
 			error2.code = 'ESRCH';
-			qtumd._process.kill = sinon.stub().throws(error2);
-			qtumd._stopSpawnedBitcoin(function(err) {
+			berycoind._process.kill = sinon.stub().throws(error2);
+			berycoind._stopSpawnedBitcoin(function(err) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._process.kill.callCount.should.equal(1);
+				berycoind._process.kill.callCount.should.equal(1);
 				log.warn.callCount.should.equal(2);
 				done();
 			});
@@ -1817,16 +1817,16 @@ describe('Qtum Service', function() {
 		it('it will attempt to kill process with NaN', function(done) {
 			var readFile = sandbox.stub();
 			readFile.onCall(0).callsArgWith(2, null, '     ');
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFile: readFile
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd.spawnStopTime = 1;
-			qtumd._process = {};
-			qtumd._process.kill = sinon.stub();
-			qtumd._stopSpawnedBitcoin(function(err) {
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind.spawnStopTime = 1;
+			berycoind._process = {};
+			berycoind._process.kill = sinon.stub();
+			berycoind._stopSpawnedBitcoin(function(err) {
 				if (err) {
 					return done(err);
 				}
@@ -1836,16 +1836,16 @@ describe('Qtum Service', function() {
 		it('it will attempt to kill process without pid', function(done) {
 			var readFile = sandbox.stub();
 			readFile.onCall(0).callsArgWith(2, null, '');
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFile: readFile
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd.spawnStopTime = 1;
-			qtumd._process = {};
-			qtumd._process.kill = sinon.stub();
-			qtumd._stopSpawnedBitcoin(function(err) {
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind.spawnStopTime = 1;
+			berycoind._process = {};
+			berycoind._process.kill = sinon.stub();
+			berycoind._stopSpawnedBitcoin(function(err) {
 				if (err) {
 					return done(err);
 				}
@@ -1865,23 +1865,23 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will give error from spawn config', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd._loadSpawnConfiguration = sinon.stub().throws(new Error('test'));
-			qtumd._spawnChildProcess(function(err) {
-				qtumd._loadSpawnConfiguration.callCount.should.equal(1);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind._loadSpawnConfiguration = sinon.stub().throws(new Error('test'));
+			berycoind._spawnChildProcess(function(err) {
+				berycoind._loadSpawnConfiguration.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will give error from stopSpawnedBitcoin', function() {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd._stopSpawnedBitcoin = sinon.stub().callsArgWith(0, new Error('test'));
-			qtumd._spawnChildProcess(function(err) {
-				qtumd._loadSpawnConfiguration.callCount.should.equal(1);
-				qtumd._stopSpawnedBitcoin.callCount.should.equal(1);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind._stopSpawnedBitcoin = sinon.stub().callsArgWith(0, new Error('test'));
+			berycoind._spawnChildProcess(function(err) {
+				berycoind._loadSpawnConfiguration.callCount.should.equal(1);
+				berycoind._stopSpawnedBitcoin.callCount.should.equal(1);
 				err.should.be.instanceOf(Error);
 				err.message.should.equal('test');
 			});
@@ -1889,7 +1889,7 @@ describe('Qtum Service', function() {
 		it('will exit spawn if shutdown', function() {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
@@ -1898,7 +1898,7 @@ describe('Qtum Service', function() {
 			};
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -1906,12 +1906,12 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(config);
-			qtumd.spawn = {};
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd._stopSpawnedBitcoin = sinon.stub().callsArgWith(0, null);
-			qtumd.node.stopping = true;
-			qtumd._spawnChildProcess(function(err) {
+			var berycoind = new TestBerycoinService(config);
+			berycoind.spawn = {};
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind._stopSpawnedBitcoin = sinon.stub().callsArgWith(0, null);
+			berycoind.node.stopping = true;
+			berycoind._spawnChildProcess(function(err) {
 				err.should.be.instanceOf(Error);
 				err.message.should.match(/Stopping while trying to spawn/);
 			});
@@ -1919,7 +1919,7 @@ describe('Qtum Service', function() {
 		it('will include network with spawn command and init zmq/rpc on node', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -1927,50 +1927,50 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
+			var berycoind = new TestBerycoinService(baseConfig);
 
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'testexec';
-			qtumd.spawn.configPath = 'testdir/qtum.conf';
-			qtumd.spawn.datadir = 'testdir';
-			qtumd.spawn.config = {};
-			qtumd.spawn.config.rpcport = 20001;
-			qtumd.spawn.config.rpcuser = 'qtum';
-			qtumd.spawn.config.rpcpassword = 'password';
-			qtumd.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'testexec';
+			berycoind.spawn.configPath = 'testdir/berycoin.conf';
+			berycoind.spawn.datadir = 'testdir';
+			berycoind.spawn.config = {};
+			berycoind.spawn.config.rpcport = 20001;
+			berycoind.spawn.config.rpcuser = 'berycoin';
+			berycoind.spawn.config.rpcpassword = 'password';
+			berycoind.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
 
-			qtumd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
-			qtumd._checkReindex = sinon.stub().callsArgWith(1, null);
-			qtumd._spawnChildProcess(function(err, node) {
+			berycoind._loadTipFromNode = sinon.stub().callsArgWith(1, null);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._checkSyncedAndSubscribeZmqEvents = sinon.stub();
+			berycoind._checkReindex = sinon.stub().callsArgWith(1, null);
+			berycoind._spawnChildProcess(function(err, node) {
 				should.not.exist(err);
 				spawn.callCount.should.equal(1);
 				spawn.args[0][0].should.equal('testexec');
 				spawn.args[0][1].should.deep.equal([
-					'--conf=testdir/qtum.conf',
+					'--conf=testdir/berycoin.conf',
 					'--datadir=testdir',
 					'--testnet'
 				]);
 				spawn.args[0][2].should.deep.equal({
 					stdio: 'inherit'
 				});
-				qtumd._loadTipFromNode.callCount.should.equal(1);
-				qtumd._initZmqSubSocket.callCount.should.equal(1);
-				should.exist(qtumd._initZmqSubSocket.args[0][0].client);
-				qtumd._initZmqSubSocket.args[0][1].should.equal('tcp://127.0.0.1:30001');
-				qtumd._checkSyncedAndSubscribeZmqEvents.callCount.should.equal(1);
-				should.exist(qtumd._checkSyncedAndSubscribeZmqEvents.args[0][0].client);
+				berycoind._loadTipFromNode.callCount.should.equal(1);
+				berycoind._initZmqSubSocket.callCount.should.equal(1);
+				should.exist(berycoind._initZmqSubSocket.args[0][0].client);
+				berycoind._initZmqSubSocket.args[0][1].should.equal('tcp://127.0.0.1:30001');
+				berycoind._checkSyncedAndSubscribeZmqEvents.callCount.should.equal(1);
+				should.exist(berycoind._checkSyncedAndSubscribeZmqEvents.args[0][0].client);
 				should.exist(node);
 				should.exist(node.client);
 				done();
 			});
 		});
-		it('will respawn qtumd spawned process', function(done) {
+		it('will respawn berycoind spawned process', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -1978,27 +1978,27 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'qtumd';
-			qtumd.spawn.datadir = '/tmp/qtum';
-			qtumd.spawn.configPath = '/tmp/qtum/qtum.conf';
-			qtumd.spawn.config = {};
-			qtumd.spawnRestartTime = 1;
-			qtumd._loadTipFromNode = sinon.stub().callsArg(1);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._checkReindex = sinon.stub().callsArg(1);
-			qtumd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
-			qtumd._stopSpawnedBitcoin = sinon.stub().callsArg(0);
-			sinon.spy(qtumd, '_spawnChildProcess');
-			qtumd._spawnChildProcess(function(err) {
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'berycoind';
+			berycoind.spawn.datadir = '/tmp/berycoin';
+			berycoind.spawn.configPath = '/tmp/berycoin/berycoin.conf';
+			berycoind.spawn.config = {};
+			berycoind.spawnRestartTime = 1;
+			berycoind._loadTipFromNode = sinon.stub().callsArg(1);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._checkReindex = sinon.stub().callsArg(1);
+			berycoind._checkSyncedAndSubscribeZmqEvents = sinon.stub();
+			berycoind._stopSpawnedBitcoin = sinon.stub().callsArg(0);
+			sinon.spy(berycoind, '_spawnChildProcess');
+			berycoind._spawnChildProcess(function(err) {
 				if (err) {
 					return done(err);
 				}
 				process.once('exit', function() {
 					setTimeout(function() {
-						qtumd._spawnChildProcess.callCount.should.equal(2);
+						berycoind._spawnChildProcess.callCount.should.equal(2);
 						done();
 					}, 5);
 				});
@@ -2008,7 +2008,7 @@ describe('Qtum Service', function() {
 		it('will emit error during respawn', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -2016,26 +2016,26 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'qtumd';
-			qtumd.spawn.datadir = '/tmp/qtum';
-			qtumd.spawn.configPath = '/tmp/qtum/qtum.conf';
-			qtumd.spawn.config = {};
-			qtumd.spawnRestartTime = 1;
-			qtumd._loadTipFromNode = sinon.stub().callsArg(1);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._checkReindex = sinon.stub().callsArg(1);
-			qtumd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
-			qtumd._stopSpawnedBitcoin = sinon.stub().callsArg(0);
-			sinon.spy(qtumd, '_spawnChildProcess');
-			qtumd._spawnChildProcess(function(err) {
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'berycoind';
+			berycoind.spawn.datadir = '/tmp/berycoin';
+			berycoind.spawn.configPath = '/tmp/berycoin/berycoin.conf';
+			berycoind.spawn.config = {};
+			berycoind.spawnRestartTime = 1;
+			berycoind._loadTipFromNode = sinon.stub().callsArg(1);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._checkReindex = sinon.stub().callsArg(1);
+			berycoind._checkSyncedAndSubscribeZmqEvents = sinon.stub();
+			berycoind._stopSpawnedBitcoin = sinon.stub().callsArg(0);
+			sinon.spy(berycoind, '_spawnChildProcess');
+			berycoind._spawnChildProcess(function(err) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._spawnChildProcess = sinon.stub().callsArgWith(0, new Error('test'));
-				qtumd.on('error', function(err) {
+				berycoind._spawnChildProcess = sinon.stub().callsArgWith(0, new Error('test'));
+				berycoind.on('error', function(err) {
 					err.should.be.instanceOf(Error);
 					err.message.should.equal('test');
 					done();
@@ -2043,10 +2043,10 @@ describe('Qtum Service', function() {
 				process.emit('exit', 1);
 			});
 		});
-		it('will NOT respawn qtumd spawned process if shutting down', function(done) {
+		it('will NOT respawn berycoind spawned process if shutting down', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -2056,35 +2056,35 @@ describe('Qtum Service', function() {
 			});
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new TestQtumService(config);
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'qtumd';
-			qtumd.spawn.datadir = '/tmp/qtum';
-			qtumd.spawn.configPath = '/tmp/qtum/qtum.conf';
-			qtumd.spawn.config = {};
-			qtumd.spawnRestartTime = 1;
-			qtumd._loadTipFromNode = sinon.stub().callsArg(1);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._checkReindex = sinon.stub().callsArg(1);
-			qtumd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
-			qtumd._stopSpawnedBitcoin = sinon.stub().callsArg(0);
-			sinon.spy(qtumd, '_spawnChildProcess');
-			qtumd._spawnChildProcess(function(err) {
+			var berycoind = new TestBerycoinService(config);
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'berycoind';
+			berycoind.spawn.datadir = '/tmp/berycoin';
+			berycoind.spawn.configPath = '/tmp/berycoin/berycoin.conf';
+			berycoind.spawn.config = {};
+			berycoind.spawnRestartTime = 1;
+			berycoind._loadTipFromNode = sinon.stub().callsArg(1);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._checkReindex = sinon.stub().callsArg(1);
+			berycoind._checkSyncedAndSubscribeZmqEvents = sinon.stub();
+			berycoind._stopSpawnedBitcoin = sinon.stub().callsArg(0);
+			sinon.spy(berycoind, '_spawnChildProcess');
+			berycoind._spawnChildProcess(function(err) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.node.stopping = true;
+				berycoind.node.stopping = true;
 				process.once('exit', function() {
 					setTimeout(function() {
-						qtumd._spawnChildProcess.callCount.should.equal(1);
+						berycoind._spawnChildProcess.callCount.should.equal(1);
 						done();
 					}, 5);
 				});
@@ -2094,7 +2094,7 @@ describe('Qtum Service', function() {
 		it('will give error after 60 retries', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -2102,21 +2102,21 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
-			qtumd.startRetryInterval = 1;
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'testexec';
-			qtumd.spawn.configPath = 'testdir/qtum.conf';
-			qtumd.spawn.datadir = 'testdir';
-			qtumd.spawn.config = {};
-			qtumd.spawn.config.rpcport = 20001;
-			qtumd.spawn.config.rpcuser = 'qtum';
-			qtumd.spawn.config.rpcpassword = 'password';
-			qtumd.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
-			qtumd._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd._spawnChildProcess(function(err) {
-				qtumd._loadTipFromNode.callCount.should.equal(60);
+			var berycoind = new TestBerycoinService(baseConfig);
+			berycoind.startRetryInterval = 1;
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'testexec';
+			berycoind.spawn.configPath = 'testdir/berycoin.conf';
+			berycoind.spawn.datadir = 'testdir';
+			berycoind.spawn.config = {};
+			berycoind.spawn.config.rpcport = 20001;
+			berycoind.spawn.config.rpcuser = 'berycoin';
+			berycoind.spawn.config.rpcpassword = 'password';
+			berycoind.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
+			berycoind._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind._spawnChildProcess(function(err) {
+				berycoind._loadTipFromNode.callCount.should.equal(60);
 				err.should.be.instanceof(Error);
 				done();
 			});
@@ -2124,7 +2124,7 @@ describe('Qtum Service', function() {
 		it('will give error from check reindex', function(done) {
 			var process = new EventEmitter();
 			var spawn = sinon.stub().returns(process);
-			var TestQtumService = proxyquire('../../lib/services/qtumd', {
+			var TestBerycoinService = proxyquire('../../lib/services/berycoind', {
 				fs: {
 					readFileSync: readFileSync
 				},
@@ -2132,25 +2132,25 @@ describe('Qtum Service', function() {
 					spawn: spawn
 				}
 			});
-			var qtumd = new TestQtumService(baseConfig);
+			var berycoind = new TestBerycoinService(baseConfig);
 
-			qtumd._loadSpawnConfiguration = sinon.stub();
-			qtumd.spawn = {};
-			qtumd.spawn.exec = 'testexec';
-			qtumd.spawn.configPath = 'testdir/qtum.conf';
-			qtumd.spawn.datadir = 'testdir';
-			qtumd.spawn.config = {};
-			qtumd.spawn.config.rpcport = 20001;
-			qtumd.spawn.config.rpcuser = 'qtum';
-			qtumd.spawn.config.rpcpassword = 'password';
-			qtumd.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
+			berycoind._loadSpawnConfiguration = sinon.stub();
+			berycoind.spawn = {};
+			berycoind.spawn.exec = 'testexec';
+			berycoind.spawn.configPath = 'testdir/berycoin.conf';
+			berycoind.spawn.datadir = 'testdir';
+			berycoind.spawn.config = {};
+			berycoind.spawn.config.rpcport = 20001;
+			berycoind.spawn.config.rpcuser = 'berycoin';
+			berycoind.spawn.config.rpcpassword = 'password';
+			berycoind.spawn.config.zmqpubrawtx = 'tcp://127.0.0.1:30001';
 
-			qtumd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._checkSyncedAndSubscribeZmqEvents = sinon.stub();
-			qtumd._checkReindex = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind._loadTipFromNode = sinon.stub().callsArgWith(1, null);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._checkSyncedAndSubscribeZmqEvents = sinon.stub();
+			berycoind._checkReindex = sinon.stub().callsArgWith(1, new Error('test'));
 
-			qtumd._spawnChildProcess(function(err) {
+			berycoind._spawnChildProcess(function(err) {
 				err.should.be.instanceof(Error);
 				done();
 			});
@@ -2161,46 +2161,46 @@ describe('Qtum Service', function() {
 		it('will give error if connecting while shutting down', function(done) {
 			var config = {
 				node: {
-					network: qtumcore.Networks.testnet
+					network: berycoincore.Networks.testnet
 				},
 				spawn: {
 					datadir: 'testdir',
 					exec: 'testpath'
 				}
 			};
-			var qtumd = new QtumService(config);
-			qtumd.node.stopping = true;
-			qtumd.startRetryInterval = 100;
-			qtumd._loadTipFromNode = sinon.stub();
-			qtumd._connectProcess({}, function(err) {
+			var berycoind = new BerycoinService(config);
+			berycoind.node.stopping = true;
+			berycoind.startRetryInterval = 100;
+			berycoind._loadTipFromNode = sinon.stub();
+			berycoind._connectProcess({}, function(err) {
 				err.should.be.instanceof(Error);
-				err.message.should.match(/Stopping while trying to connect to qtumd/);
-				qtumd._loadTipFromNode.callCount.should.equal(0);
+				err.message.should.match(/Stopping while trying to connect to berycoind/);
+				berycoind._loadTipFromNode.callCount.should.equal(0);
 				done();
 			});
 		});
 		it('will give error from loadTipFromNode after 60 retries', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd.startRetryInterval = 1;
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._loadTipFromNode = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind.startRetryInterval = 1;
 			var config = {};
-			qtumd._connectProcess(config, function(err) {
+			berycoind._connectProcess(config, function(err) {
 				err.should.be.instanceof(Error);
-				qtumd._loadTipFromNode.callCount.should.equal(60);
+				berycoind._loadTipFromNode.callCount.should.equal(60);
 				done();
 			});
 		});
 		it('will init zmq/rpc on node', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._initZmqSubSocket = sinon.stub();
-			qtumd._subscribeZmqEvents = sinon.stub();
-			qtumd._loadTipFromNode = sinon.stub().callsArgWith(1, null);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._initZmqSubSocket = sinon.stub();
+			berycoind._subscribeZmqEvents = sinon.stub();
+			berycoind._loadTipFromNode = sinon.stub().callsArgWith(1, null);
 			var config = {};
-			qtumd._connectProcess(config, function(err, node) {
+			berycoind._connectProcess(config, function(err, node) {
 				should.not.exist(err);
-				qtumd._loadTipFromNode.callCount.should.equal(1);
-				qtumd._initZmqSubSocket.callCount.should.equal(1);
-				qtumd._loadTipFromNode.callCount.should.equal(1);
+				berycoind._loadTipFromNode.callCount.should.equal(1);
+				berycoind._initZmqSubSocket.callCount.should.equal(1);
+				berycoind._loadTipFromNode.callCount.should.equal(1);
 				should.exist(node);
 				should.exist(node.client);
 				done();
@@ -2217,72 +2217,72 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will give error if "spawn" and "connect" are both not configured', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.options = {};
-			qtumd.start(function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.options = {};
+			berycoind.start(function(err) {
 				err.should.be.instanceof(Error);
-				err.message.should.be.a('string').and.equal('Qtum configuration options "spawn" or "connect" are expected');
+				err.message.should.be.a('string').and.equal('Berycoin configuration options "spawn" or "connect" are expected');
 				done();
 			});
 		});
 		it('will give error from spawnChildProcess', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._spawnChildProcess = sinon.stub().callsArgWith(0, new Error('test'));
-			qtumd.options = {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._spawnChildProcess = sinon.stub().callsArgWith(0, new Error('test'));
+			berycoind.options = {
 				spawn: {}
 			};
-			qtumd.start(function(err) {
+			berycoind.start(function(err) {
 				err.should.be.instanceof(Error);
-				qtumd._spawnChildProcess.callCount.should.equal(1);
+				berycoind._spawnChildProcess.callCount.should.equal(1);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will give error from connectProcess', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._connectProcess = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd.options = {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._connectProcess = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind.options = {
 				connect: [
 					{}
 				]
 			};
-			qtumd.start(function(err) {
-				qtumd._connectProcess.callCount.should.equal(1);
+			berycoind.start(function(err) {
+				berycoind._connectProcess.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will push node from spawnChildProcess', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var node = {};
-			qtumd._initChain = sinon.stub().callsArg(0);
-			qtumd._spawnChildProcess = sinon.stub().callsArgWith(0, null, node);
-			qtumd.options = {
+			berycoind._initChain = sinon.stub().callsArg(0);
+			berycoind._spawnChildProcess = sinon.stub().callsArgWith(0, null, node);
+			berycoind.options = {
 				spawn: {}
 			};
-			qtumd.start(function(err) {
+			berycoind.start(function(err) {
 				should.not.exist(err);
-				qtumd.nodes.length.should.equal(1);
+				berycoind.nodes.length.should.equal(1);
 				done();
 			});
 		});
 		it('will push node from connectProcess', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._initChain = sinon.stub().callsArg(0);
-			sinon.spy(qtumd, '_spawnChildProcess');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._initChain = sinon.stub().callsArg(0);
+			sinon.spy(berycoind, '_spawnChildProcess');
 			var nodes = [{}];
-			qtumd._connectProcess = sinon.stub().callsArgWith(1, null, nodes);
-			qtumd.options = {
+			berycoind._connectProcess = sinon.stub().callsArgWith(1, null, nodes);
+			berycoind.options = {
 				connect: [
 					{}
 				]
 			};
-			qtumd.start(function(err) {
+			berycoind.start(function(err) {
 				should.not.exist(err);
-				qtumd._initChain.callCount.should.equal(1);
-				qtumd._connectProcess.callCount.should.equal(1);
-				qtumd.nodes.length.should.equal(1);
+				berycoind._initChain.callCount.should.equal(1);
+				berycoind._connectProcess.callCount.should.equal(1);
+				berycoind.nodes.length.should.equal(1);
 				done();
 			});
 		});
@@ -2290,59 +2290,59 @@ describe('Qtum Service', function() {
 
 	describe('#isSynced', function() {
 		it('will give error from syncPercentage', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, new Error('test'));
-			qtumd.isSynced(function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, new Error('test'));
+			berycoind.isSynced(function(err) {
 				should.exist(err);
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will give "true" if percentage is 100.00', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 100.00);
-			qtumd.isSynced(function(err, synced) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 100.00);
+			berycoind.isSynced(function(err, synced) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				synced.should.equal(true);
 				done();
 			});
 		});
 		it('will give "true" if percentage is 99.98', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 99.98);
-			qtumd.isSynced(function(err, synced) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 99.98);
+			berycoind.isSynced(function(err, synced) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				synced.should.equal(true);
 				done();
 			});
 		});
 		it('will give "false" if percentage is 99.49', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 99.49);
-			qtumd.isSynced(function(err, synced) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 99.49);
+			berycoind.isSynced(function(err, synced) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				synced.should.equal(false);
 				done();
 			});
 		});
 		it('will give "false" if percentage is 1', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.syncPercentage = sinon.stub().callsArgWith(0, null, 1);
-			qtumd.isSynced(function(err, synced) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.syncPercentage = sinon.stub().callsArgWith(0, null, 1);
+			berycoind.isSynced(function(err, synced) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.syncPercentage.callCount.should.equal(1);
+				berycoind.syncPercentage.callCount.should.equal(1);
 				synced.should.equal(false);
 				done();
 			});
@@ -2351,37 +2351,37 @@ describe('Qtum Service', function() {
 
 	describe('#syncPercentage', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockchainInfo = sinon.stub().callsArgWith(0, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockchainInfo: getBlockchainInfo
 				}
 			});
-			qtumd.syncPercentage(function(err) {
+			berycoind.syncPercentage(function(err) {
 				should.exist(err);
-				qtumd.nodes[0].client.getBlockchainInfo.callCount.should.equal(1);
+				berycoind.nodes[0].client.getBlockchainInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will call client getInfo and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockchainInfo = sinon.stub().callsArgWith(0, null, {
 				result: {
 					verificationprogress: '0.983821387'
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockchainInfo: getBlockchainInfo
 				}
 			});
-			qtumd.syncPercentage(function(err, percentage) {
+			berycoind.syncPercentage(function(err, percentage) {
 				if (err) {
 					return done(err);
 				}
-				qtumd.nodes[0].client.getBlockchainInfo.callCount.should.equal(1);
+				berycoind.nodes[0].client.getBlockchainInfo.callCount.should.equal(1);
 				percentage.should.equal(98.3821387);
 				done();
 			});
@@ -2390,63 +2390,63 @@ describe('Qtum Service', function() {
 
 	describe('#_normalizeAddressArg', function() {
 		it('will turn single address into array', function() {
-			var qtumd = new QtumService(baseConfig);
-			var args = qtumd._normalizeAddressArg('address');
+			var berycoind = new BerycoinService(baseConfig);
+			var args = berycoind._normalizeAddressArg('address');
 			args.should.deep.equal(['address']);
 		});
 		it('will keep an array as an array', function() {
-			var qtumd = new QtumService(baseConfig);
-			var args = qtumd._normalizeAddressArg(['address one', 'address two']);
+			var berycoind = new BerycoinService(baseConfig);
+			var args = berycoind._normalizeAddressArg(['address one', 'address two']);
 			args.should.deep.equal(['address one', 'address two']);
 		});
 	});
 
 	describe('#getAddressBalance', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			berycoind.nodes.push({
 				client: {
 					getAddressBalance: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
 			});
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
 			var options = {};
-			qtumd.getAddressBalance(address, options, function(err) {
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+			berycoind.getAddressBalance(address, options, function(err) {
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 				done();
 			});
 		});
 		it('will give balance', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
 			var getAddressBalance = sinon.stub().callsArgWith(1, null, {
 				result: {
 					received: 100000,
 					balance: 10000
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressBalance: getAddressBalance
 				}
 			});
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
 			var options = {};
-			qtumd.getAddressBalance(address, options, function(err, data) {
+			berycoind.getAddressBalance(address, options, function(err, data) {
 				if (err) {
 					return done(err);
 				}
 				data.balance.should.equal(10000);
 				data.received.should.equal(100000);
-				qtumd.getAddressBalance(address, options, function(err, data2) {
+				berycoind.getAddressBalance(address, options, function(err, data2) {
 					if (err) {
 						return done(err);
 					}
 					data2.balance.should.equal(10000);
 					data2.received.should.equal(100000);
-					qtumd._normalizeAddressArg.callCount.should.equal(2);
+					berycoind._normalizeAddressArg.callCount.should.equal(2);
 					getAddressBalance.callCount.should.equal(1);
 					done();
 				});
@@ -2456,8 +2456,8 @@ describe('Qtum Service', function() {
 
 	describe('#getAddressUnspentOutputs', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
@@ -2466,14 +2466,14 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qMYemSxspKpzB2RbDunJRosQv5PJd3eEWD';
-			qtumd.getAddressUnspentOutputs(address, options, function(err) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will give results from client getaddressutxos', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedUtxos = [
 				{
 					"address": "qMYemSxspKpzB2RbDunJRosQv5PJd3eEWD",
@@ -2488,7 +2488,7 @@ describe('Qtum Service', function() {
 			var getAddressUtxos = sinon.stub().callsArgWith(1, null, {
 				result: expectedUtxos
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos
 				}
@@ -2497,7 +2497,7 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qMYemSxspKpzB2RbDunJRosQv5PJd3eEWD';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2508,7 +2508,7 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will use cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var expectedUtxos = [
 				{
 					"address": "qMYemSxspKpzB2RbDunJRosQv5PJd3eEWD",
@@ -2523,7 +2523,7 @@ describe('Qtum Service', function() {
 			var getAddressUtxos = sinon.stub().callsArgWith(1, null, {
 				result: expectedUtxos
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos
 				}
@@ -2532,14 +2532,14 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qMYemSxspKpzB2RbDunJRosQv5PJd3eEWD';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
 				utxos.length.should.equal(1);
 				utxos.should.deep.equal(expectedUtxos);
 				getAddressUtxos.callCount.should.equal(1);
-				qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+				berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 					if (err) {
 						return done(err);
 					}
@@ -2579,7 +2579,7 @@ describe('Qtum Service', function() {
 				}
 			];
 
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [
 				{
 					"address": "qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX",
@@ -2626,7 +2626,7 @@ describe('Qtum Service', function() {
 			let getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			})
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool
@@ -2636,7 +2636,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2670,7 +2670,7 @@ describe('Qtum Service', function() {
 					"isStake": true
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [
 				{
 					"address": "qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX",
@@ -2718,7 +2718,7 @@ describe('Qtum Service', function() {
 				result: deltas
 			})
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool,
@@ -2728,7 +2728,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2761,7 +2761,7 @@ describe('Qtum Service', function() {
 					prevout: 2
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [
 				{
 					address: 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX',
@@ -2794,7 +2794,7 @@ describe('Qtum Service', function() {
 			var getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool
@@ -2804,7 +2804,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2872,7 +2872,7 @@ describe('Qtum Service', function() {
 					timestamp: 1461342833133
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [];
 			var getAddressUtxos = sinon.stub().callsArgWith(1, null, {
 				result: confirmedUtxos
@@ -2880,7 +2880,7 @@ describe('Qtum Service', function() {
 			var getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool
@@ -2890,7 +2890,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2917,7 +2917,7 @@ describe('Qtum Service', function() {
 					prevout: 1
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [
 				{
 					address: 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX',
@@ -2934,7 +2934,7 @@ describe('Qtum Service', function() {
 			var getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool
@@ -2944,7 +2944,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -2964,7 +2964,7 @@ describe('Qtum Service', function() {
 					timestamp: 1461342707725
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var confirmedUtxos = [
 				{
 					address: 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX',
@@ -2981,7 +2981,7 @@ describe('Qtum Service', function() {
 			var getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressUtxos: getAddressUtxos,
 					getAddressMempool: getAddressMempool
@@ -2991,7 +2991,7 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err, utxos) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err, utxos) {
 				if (err) {
 					return done(err);
 				}
@@ -3002,8 +3002,8 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('it will handle error from getAddressMempool', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, { code: -1, message: 'test' })
 				}
@@ -3012,22 +3012,22 @@ describe('Qtum Service', function() {
 				queryMempool: true
 			};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err) {
 				err.should.be.instanceOf(Error);
 				done();
 			});
 		});
 		it('should set query mempool if undefined', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getAddressMempool = sinon.stub().callsArgWith(1, { code: -1, message: 'test' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: getAddressMempool
 				}
 			});
 			var options = {};
 			var address = 'qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX';
-			qtumd.getAddressUnspentOutputs(address, options, function(err) {
+			berycoind.getAddressUnspentOutputs(address, options, function(err) {
 				getAddressMempool.callCount.should.equal(1);
 				done();
 			});
@@ -3036,7 +3036,7 @@ describe('Qtum Service', function() {
 
 	describe('#_getBalanceFromMempool', function() {
 		it('will sum satoshis', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var deltas = [
 				{
 					satoshis: -1000,
@@ -3048,14 +3048,14 @@ describe('Qtum Service', function() {
 					satoshis: -10,
 				}
 			];
-			var sum = qtumd._getBalanceFromMempool(deltas);
+			var sum = berycoind._getBalanceFromMempool(deltas);
 			sum.should.equal(990);
 		});
 	});
 
 	describe('#_getTxidsFromMempool', function() {
 		it('will filter to txids', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var deltas = [
 				{
 					txid: 'txid0',
@@ -3067,14 +3067,14 @@ describe('Qtum Service', function() {
 					txid: 'txid2',
 				}
 			];
-			var txids = qtumd._getTxidsFromMempool(deltas);
+			var txids = berycoind._getTxidsFromMempool(deltas);
 			txids.length.should.equal(3);
 			txids[0].should.equal('txid0');
 			txids[1].should.equal('txid1');
 			txids[2].should.equal('txid2');
 		});
 		it('will not include duplicates', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var deltas = [
 				{
 					txid: 'txid0',
@@ -3086,7 +3086,7 @@ describe('Qtum Service', function() {
 					txid: 'txid1',
 				}
 			];
-			var txids = qtumd._getTxidsFromMempool(deltas);
+			var txids = berycoind._getTxidsFromMempool(deltas);
 			txids.length.should.equal(2);
 			txids[0].should.equal('txid0');
 			txids[1].should.equal('txid1');
@@ -3095,93 +3095,93 @@ describe('Qtum Service', function() {
 
 	describe('#_getHeightRangeQuery', function() {
 		it('will detect range query', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var options = {
 				start: 20,
 				end: 0
 			};
-			var rangeQuery = qtumd._getHeightRangeQuery(options);
+			var rangeQuery = berycoind._getHeightRangeQuery(options);
 			rangeQuery.should.equal(true);
 		});
 		it('will return false:: end < 0', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var options = {
 				start: 20,
 				end: -1
 			};
-			var rangeQuery = qtumd._getHeightRangeQuery(options);
+			var rangeQuery = berycoind._getHeightRangeQuery(options);
 			rangeQuery.should.equal(false);
 		});
 		it('will return false:: start < 0', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var options = {
 				start: -1,
 				end: 0
 			};
-			var rangeQuery = qtumd._getHeightRangeQuery(options);
+			var rangeQuery = berycoind._getHeightRangeQuery(options);
 			rangeQuery.should.equal(false);
 		});
 		it('will get range properties', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var options = {
 				start: 20,
 				end: 0
 			};
 			var clone = {};
-			var rangeQuery = qtumd._getHeightRangeQuery(options, clone);
+			var rangeQuery = berycoind._getHeightRangeQuery(options, clone);
 
 			rangeQuery.should.equal(true);
 			clone.end.should.equal(20);
 			clone.start.should.equal(0);
 		});
 		it('will throw error with invalid range', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var options = {
 				start: 0,
 				end: 20
 			};
 			(function() {
-				qtumd._getHeightRangeQuery(options);
+				berycoind._getHeightRangeQuery(options);
 			}).should.throw('"end" is expected to be less than or equal to "start"');
 		});
 	});
 
 	describe('#getAddressTxids', function() {
 		it('will give error from _getHeightRangeQuery', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd._getHeightRangeQuery = sinon.stub().throws(new Error('test'));
-			qtumd.getAddressTxids('address', {}, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind._getHeightRangeQuery = sinon.stub().throws(new Error('test'));
+			berycoind.getAddressTxids('address', {}, function(err) {
 				err.should.be.instanceOf(Error);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will give rpc error from mempool query', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
 			});
 			var options = {};
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, options, function(err) {
+			berycoind.getAddressTxids(address, options, function(err) {
 				should.exist(err);
-				qtumd._getHeightRangeQuery.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getHeightRangeQuery.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				err.should.be.instanceof(errors.RPCError);
 			});
 		});
 		it('will give rpc error from txids query', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			qtumd.nodes.push({
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			berycoind.nodes.push({
 				client: {
 					getAddressTxids: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
@@ -3190,10 +3190,10 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, options, function(err) {
+			berycoind.getAddressTxids(address, options, function(err) {
 				should.exist(err);
-				qtumd._getHeightRangeQuery.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getHeightRangeQuery.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				err.should.be.instanceof(errors.RPCError);
 			});
 		});
@@ -3212,12 +3212,12 @@ describe('Qtum Service', function() {
 				"f618aa80803b4db6a6f32a5b8734afa10d3280c7470813ceb09f336d1af6cc47",
 				"668748896009c0a2efaf31a6eeb26e59cdb46aba16ad39c328d7669a84a6631d"
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressTxids: sinon.stub().callsArgWith(1, null, {
 						result: expectedTxids.reverse()
@@ -3228,12 +3228,12 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, options, function(err, txids) {
+			berycoind.getAddressTxids(address, options, function(err, txids) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._getHeightRangeQuery.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getHeightRangeQuery.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				txids.length.should.equal(expectedTxids.length);
 				txids.should.deep.equal(expectedTxids);
 				done();
@@ -3243,15 +3243,15 @@ describe('Qtum Service', function() {
 			var expectedTxids = [
 				'b6b8ac5b726444a3d8a9a32511bdc66aa0eb3767728fd77cbe34ef2502cd7895'
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
 			var getAddressTxids = sinon.stub().callsArgWith(1, null, {
 				result: expectedTxids.reverse()
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressTxids: getAddressTxids
 				}
@@ -3260,19 +3260,19 @@ describe('Qtum Service', function() {
 				queryMempool: false
 			};
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, options, function(err, txids) {
+			berycoind.getAddressTxids(address, options, function(err, txids) {
 				if (err) {
 					return done(err);
 				}
 				getAddressTxids.callCount.should.equal(1);
 				txids.should.deep.equal(expectedTxids);
 
-				qtumd.getAddressTxids(address, options, function(err, txids) {
+				berycoind.getAddressTxids(address, options, function(err, txids) {
 					if (err) {
 						return done(err);
 					}
-					qtumd._getHeightRangeQuery.callCount.should.equal(2);
-					qtumd._normalizeAddressArg.callCount.should.equal(2);
+					berycoind._getHeightRangeQuery.callCount.should.equal(2);
+					berycoind._normalizeAddressArg.callCount.should.equal(2);
 					getAddressTxids.callCount.should.equal(1);
 					txids.should.deep.equal(expectedTxids);
 					done();
@@ -3283,16 +3283,16 @@ describe('Qtum Service', function() {
 			var expectedTxids = [
 				'e9dcf22807db77ac0276b03cc2d3a8b03c4837db8ac6650501ef45af1c807cce'
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
 			var getAddressMempool = sinon.stub();
 			var getAddressTxids = sinon.stub().callsArgWith(1, null, {
 				result: expectedTxids.reverse()
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressTxids: getAddressTxids,
 					getAddressMempool: getAddressMempool
@@ -3304,7 +3304,7 @@ describe('Qtum Service', function() {
 				end: 2
 			};
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, options, function(err, txids) {
+			berycoind.getAddressTxids(address, options, function(err, txids) {
 				if (err) {
 					return done(err);
 				}
@@ -3312,12 +3312,12 @@ describe('Qtum Service', function() {
 				getAddressMempool.callCount.should.equal(0);
 				txids.should.deep.equal(expectedTxids);
 
-				qtumd.getAddressTxids(address, options, function(err, txids) {
+				berycoind.getAddressTxids(address, options, function(err, txids) {
 					if (err) {
 						return done(err);
 					}
-					qtumd._getHeightRangeQuery.callCount.should.equal(4);
-					qtumd._normalizeAddressArg.callCount.should.equal(2);
+					berycoind._getHeightRangeQuery.callCount.should.equal(4);
+					berycoind._normalizeAddressArg.callCount.should.equal(2);
 					getAddressTxids.callCount.should.equal(2);
 					getAddressMempool.callCount.should.equal(0);
 					txids.should.deep.equal(expectedTxids);
@@ -3329,10 +3329,10 @@ describe('Qtum Service', function() {
 			var expectedTxids = [
 				'25cfac8c32eee1b9b915984c98eca608c5a3507b3ffdc08fb858fc1d534f3da6'
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getHeightRangeQuery');
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getHeightRangeQuery');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
 			var getAddressTxids = sinon.stub().callsArgWith(1, null, {
 				result: expectedTxids.reverse()
@@ -3350,21 +3350,21 @@ describe('Qtum Service', function() {
 					}
 				]
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressTxids: getAddressTxids,
 					getAddressMempool: getAddressMempool
 				}
 			});
 			var address = 'qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2';
-			qtumd.getAddressTxids(address, { queryMempool: false }, function(err, txids) {
+			berycoind.getAddressTxids(address, { queryMempool: false }, function(err, txids) {
 				if (err) {
 					return done(err);
 				}
 				getAddressTxids.callCount.should.equal(1);
 				txids.should.deep.equal(expectedTxids);
 
-				qtumd.getAddressTxids(address, { queryMempool: true }, function(err, txids) {
+				berycoind.getAddressTxids(address, { queryMempool: true }, function(err, txids) {
 					if (err) {
 						return done(err);
 					}
@@ -3376,7 +3376,7 @@ describe('Qtum Service', function() {
 						'25cfac8c32eee1b9b915984c98eca608c5a3507b3ffdc08fb858fc1d534f3da6' // confirmed
 					]);
 
-					qtumd.getAddressTxids(address, { queryMempoolOnly: true }, function(err, txids) {
+					berycoind.getAddressTxids(address, { queryMempoolOnly: true }, function(err, txids) {
 						if (err) {
 							return done(err);
 						}
@@ -3387,8 +3387,8 @@ describe('Qtum Service', function() {
 							'19edf310a2b1e4515c40e7ab37470a547d26a6fb8a70cd6083a98d36c6f6cf75', // mempool
 							'668748896009c0a2efaf31a6eeb26e59cdb46aba16ad39c328d7669a84a6631d', // mempool
 						]);
-						qtumd._getHeightRangeQuery.callCount.should.equal(3);
-						qtumd._normalizeAddressArg.callCount.should.equal(3);
+						berycoind._getHeightRangeQuery.callCount.should.equal(3);
+						berycoind._normalizeAddressArg.callCount.should.equal(3);
 						done();
 					});
 				});
@@ -3407,70 +3407,70 @@ describe('Qtum Service', function() {
 		it('should get 0 confirmation', function() {
 			var tx = new Transaction(txhex);
 			tx.height = -1;
-			var qtumd = new QtumService(baseConfig);
-			qtumd.height = 10;
-			var confirmations = qtumd._getConfirmationsDetail(tx);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.height = 10;
+			var confirmations = berycoind._getConfirmationsDetail(tx);
 			confirmations.should.equal(0);
 		});
 		it('should get 1 confirmation', function() {
 			var tx = new Transaction(txhex);
 			tx.height = 10;
-			var qtumd = new QtumService(baseConfig);
-			qtumd.height = 10;
-			var confirmations = qtumd._getConfirmationsDetail(tx);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.height = 10;
+			var confirmations = berycoind._getConfirmationsDetail(tx);
 			confirmations.should.equal(1);
 		});
 		it('should get 2 confirmation', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var tx = new Transaction(txhex);
-			qtumd.height = 11;
+			berycoind.height = 11;
 			tx.height = 10;
-			var confirmations = qtumd._getConfirmationsDetail(tx);
+			var confirmations = berycoind._getConfirmationsDetail(tx);
 			confirmations.should.equal(2);
 		});
 		it('should get 0 confirmation with overflow', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var tx = new Transaction(txhex);
-			qtumd.height = 3;
+			berycoind.height = 3;
 			tx.height = 10;
-			var confirmations = qtumd._getConfirmationsDetail(tx);
+			var confirmations = berycoind._getConfirmationsDetail(tx);
 			log.warn.callCount.should.equal(1);
 			confirmations.should.equal(0);
 		});
 		it('should get 1000 confirmation', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var tx = new Transaction(txhex);
-			qtumd.height = 1000;
+			berycoind.height = 1000;
 			tx.height = 1;
-			var confirmations = qtumd._getConfirmationsDetail(tx);
+			var confirmations = berycoind._getConfirmationsDetail(tx);
 			confirmations.should.equal(1000);
 		});
 	});
 
 	describe('#_getAddressDetailsForInput', function() {
 		it('will return if missing an address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {};
-			qtumd._getAddressDetailsForInput({}, 0, result, []);
+			berycoind._getAddressDetailsForInput({}, 0, result, []);
 			should.not.exist(result.addresses);
 			should.not.exist(result.satoshis);
 		});
 		it('will only add address if it matches', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {};
-			qtumd._getAddressDetailsForInput({
+			berycoind._getAddressDetailsForInput({
 				address: 'address1'
 			}, 0, result, ['address2']);
 			should.not.exist(result.addresses);
 			should.not.exist(result.satoshis);
 		});
 		it('will instantiate if outputIndexes not defined', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {
 				addresses: {},
 				satoshis: 10,
 			};
-			qtumd._getAddressDetailsForInput({
+			berycoind._getAddressDetailsForInput({
 				address: 'address1',
 				satoshis: 5,
 			}, 0, result, ['address1']);
@@ -3480,7 +3480,7 @@ describe('Qtum Service', function() {
 			result.satoshis.should.be.equal(5);
 		});
 		it('will push to inputIndexes', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {
 				addresses: {
 					'address1': {
@@ -3488,7 +3488,7 @@ describe('Qtum Service', function() {
 					}
 				}
 			};
-			qtumd._getAddressDetailsForInput({
+			berycoind._getAddressDetailsForInput({
 				address: 'address1'
 			}, 2, result, ['address1']);
 			should.exist(result.addresses);
@@ -3498,28 +3498,28 @@ describe('Qtum Service', function() {
 
 	describe('#_getAddressDetailsForOutput', function() {
 		it('will return if missing an address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {};
-			qtumd._getAddressDetailsForOutput({}, 0, result, []);
+			berycoind._getAddressDetailsForOutput({}, 0, result, []);
 			should.not.exist(result.addresses);
 			should.not.exist(result.satoshis);
 		});
 		it('will only add address if it matches', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {};
-			qtumd._getAddressDetailsForOutput({
+			berycoind._getAddressDetailsForOutput({
 				address: 'address1'
 			}, 0, result, ['address2']);
 			should.not.exist(result.addresses);
 			should.not.exist(result.satoshis);
 		});
 		it('will instantiate if outputIndexes not defined with', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {
 				addresses: {},
 				satoshis: 10,
 			};
-			qtumd._getAddressDetailsForOutput({
+			berycoind._getAddressDetailsForOutput({
 				address: 'address1',
 				satoshis: 5
 			}, 0, result, ['address1']);
@@ -3529,7 +3529,7 @@ describe('Qtum Service', function() {
 			result.satoshis.should.be.equal(15);
 		});
 		it('will push if outputIndexes defined', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var result = {
 				addresses: {
 					'address1': {
@@ -3537,7 +3537,7 @@ describe('Qtum Service', function() {
 					}
 				}
 			};
-			qtumd._getAddressDetailsForOutput({
+			berycoind._getAddressDetailsForOutput({
 				address: 'address1'
 			}, 1, result, ['address1']);
 			should.exist(result.addresses);
@@ -3579,19 +3579,19 @@ describe('Qtum Service', function() {
 				],
 				locktime: 0
 			};
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_getAddressDetailsForInput');
-			sinon.spy(qtumd, '_getAddressDetailsForOutput');
+			sinon.spy(berycoind, '_getAddressDetailsForInput');
+			sinon.spy(berycoind, '_getAddressDetailsForOutput');
 
 			var addresses = ['qey8KJ8xkyLUUqFZZwqngXX9U2q9ef6Tw4'];
-			var details = qtumd._getAddressDetailsForTransaction(tx, addresses);
+			var details = berycoind._getAddressDetailsForTransaction(tx, addresses);
 			should.exist(details.addresses['qey8KJ8xkyLUUqFZZwqngXX9U2q9ef6Tw4']);
 			details.addresses['qey8KJ8xkyLUUqFZZwqngXX9U2q9ef6Tw4'].inputIndexes.should.deep.equal([0]);
 			details.addresses['qey8KJ8xkyLUUqFZZwqngXX9U2q9ef6Tw4'].outputIndexes.should.deep.equal([1, 4]);
 			details.satoshis.should.equal(-450010000);
-			qtumd._getAddressDetailsForInput.callCount.should.equal(1);
-			qtumd._getAddressDetailsForOutput.callCount.should.equal(5);
+			berycoind._getAddressDetailsForInput.callCount.should.equal(1);
+			berycoind._getAddressDetailsForOutput.callCount.should.equal(5);
 			done();
 		});
 	});
@@ -3602,24 +3602,24 @@ describe('Qtum Service', function() {
 			var tx = {
 				height: 20,
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_getConfirmationsDetail');
-			qtumd.getDetailedTransaction = sinon.stub().callsArgWith(1, null, tx);
-			qtumd.height = 300;
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_getConfirmationsDetail');
+			berycoind.getDetailedTransaction = sinon.stub().callsArgWith(1, null, tx);
+			berycoind.height = 300;
 			var addresses = {};
-			qtumd._getAddressDetailsForTransaction = sinon.stub().returns({
+			berycoind._getAddressDetailsForTransaction = sinon.stub().returns({
 				addresses: addresses,
 				satoshis: 1000,
 			});
-			qtumd._getAddressDetailedTransaction(txid, {}, function(err, details) {
+			berycoind._getAddressDetailedTransaction(txid, {}, function(err, details) {
 				if (err) {
 					return done(err);
 				}
 				details.addresses.should.equal(addresses);
 				details.satoshis.should.equal(1000);
-				qtumd.getDetailedTransaction.callCount.should.equal(1);
-				qtumd._getAddressDetailsForTransaction.callCount.should.equal(1);
-				qtumd._getConfirmationsDetail.callCount.should.equal(1);
+				berycoind.getDetailedTransaction.callCount.should.equal(1);
+				berycoind._getAddressDetailsForTransaction.callCount.should.equal(1);
+				berycoind._getConfirmationsDetail.callCount.should.equal(1);
 				details.confirmations.should.equal(281);
 				details.tx.should.equal(tx);
 				done();
@@ -3627,24 +3627,24 @@ describe('Qtum Service', function() {
 		});
 		it('give error from _getDetailedTransaction', function(done) {
 			var txid = '46f24e0c274fc07708b781963576c4c5d5625d926dbb0a17fa865dcd9fe58ea0';
-			var qtumd = new QtumService(baseConfig);
-			qtumd.getDetailedTransaction = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd._getAddressDetailedTransaction(txid, {}, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.getDetailedTransaction = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind._getAddressDetailedTransaction(txid, {}, function(err) {
 				err.should.be.instanceof(Error);
-				qtumd.getDetailedTransaction.callCount.should.equal(1);
+				berycoind.getDetailedTransaction.callCount.should.equal(1);
 				done();
 			});
 		});
 	});
 
 	describe('#_getAddressStrings', function() {
-		it('will get address strings from qtumcore addresses', function() {
+		it('will get address strings from berycoincore addresses', function() {
 			var addresses = [
-				qtumcore.Address('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6'),
-				qtumcore.Address('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU'),
+				berycoincore.Address('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6'),
+				berycoincore.Address('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU'),
 			];
-			var qtumd = new QtumService(baseConfig);
-			var strings = qtumd._getAddressStrings(addresses);
+			var berycoind = new BerycoinService(baseConfig);
+			var strings = berycoind._getAddressStrings(addresses);
 			strings[0].should.equal('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6');
 			strings[1].should.equal('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU');
 		});
@@ -3653,63 +3653,63 @@ describe('Qtum Service', function() {
 				'qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6',
 				'qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU',
 			];
-			var qtumd = new QtumService(baseConfig);
-			var strings = qtumd._getAddressStrings(addresses);
+			var berycoind = new BerycoinService(baseConfig);
+			var strings = berycoind._getAddressStrings(addresses);
 			strings[0].should.equal('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6');
 			strings[1].should.equal('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU');
 		});
 		it('will get address strings from mixture of types', function() {
 			var addresses = [
-				qtumcore.Address('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6'),
+				berycoincore.Address('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6'),
 				'qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU',
 			];
-			var qtumd = new QtumService(baseConfig);
-			var strings = qtumd._getAddressStrings(addresses);
+			var berycoind = new BerycoinService(baseConfig);
+			var strings = berycoind._getAddressStrings(addresses);
 			strings[0].should.equal('qU12Fa5RHM535kSDvywxPjCmbL7gwkQJZ6');
 			strings[1].should.equal('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU');
 		});
 		it('will give error with unknown', function() {
 			var addresses = [
-				qtumcore.Address('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU'),
+				berycoincore.Address('qcSLSxN1sngCWSrKFZ6UC7ri4hhVSdq9SU'),
 				0,
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			(function() {
-				qtumd._getAddressStrings(addresses);
+				berycoind._getAddressStrings(addresses);
 			}).should.throw(TypeError);
 		});
 	});
 
 	describe('#_paginateTxids', function() {
 		it('slice txids based on "from" and "to" (3 to 13)', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-			var paginated = qtumd._paginateTxids(txids, 3, 13);
+			var paginated = berycoind._paginateTxids(txids, 3, 13);
 			paginated.should.deep.equal([3, 4, 5, 6, 7, 8, 9, 10]);
 		});
 		it('slice txids based on "from" and "to" (0 to 3)', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-			var paginated = qtumd._paginateTxids(txids, 0, 3);
+			var paginated = berycoind._paginateTxids(txids, 0, 3);
 			paginated.should.deep.equal([0, 1, 2]);
 		});
 		it('slice txids based on "from" and "to" (0 to 1)', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-			var paginated = qtumd._paginateTxids(txids, 0, 1);
+			var paginated = berycoind._paginateTxids(txids, 0, 1);
 			paginated.should.deep.equal([0]);
 		});
 		it('will throw error if "from" is greater than "to"', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 			(function() {
-				qtumd._paginateTxids(txids, 1, 0);
+				berycoind._paginateTxids(txids, 1, 0);
 			}).should.throw('"from" (1) is expected to be less than "to"');
 		});
 		it('will handle string numbers', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var txids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-			var paginated = qtumd._paginateTxids(txids, '1', '3');
+			var paginated = berycoind._paginateTxids(txids, '1', '3');
 			paginated.should.deep.equal([1, 2]);
 		});
 	});
@@ -3721,93 +3721,93 @@ describe('Qtum Service', function() {
 			for (var i = 0; i < 101; i++) {
 				addresses.push(address);
 			}
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			qtumd.maxAddressesQuery = 100;
-			qtumd.getAddressHistory(addresses, {}, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			berycoind.maxAddressesQuery = 100;
+			berycoind.getAddressHistory(addresses, {}, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				err.message.match(/Maximum/);
 				done();
 			});
 		});
 		it('will give error with "from" and "to" range that exceeds max size', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getAddressStrings');
-			qtumd.getAddressHistory(address, { from: 0, to: 51 }, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getAddressStrings');
+			berycoind.getAddressHistory(address, { from: 0, to: 51 }, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd._getAddressStrings.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getAddressStrings.callCount.should.equal(1);
 				err.message.match(/^\"from/);
 				done();
 			});
 		});
 		it('will give error with "from" and "to" order is reversed', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getAddressStrings');
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, []);
-			qtumd.getAddressHistory(address, { from: 51, to: 0 }, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getAddressStrings');
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, []);
+			berycoind.getAddressHistory(address, { from: 51, to: 0 }, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd._getAddressStrings.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getAddressStrings.callCount.should.equal(1);
 				err.message.match(/^\"from/);
 				done();
 			});
 		});
 		it('will give error from _getAddressDetailedTransaction', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getAddressStrings');
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, ['txid']);
-			qtumd._getAddressDetailedTransaction = sinon.stub().callsArgWith(2, new Error('test'));
-			qtumd.getAddressHistory(address, {}, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getAddressStrings');
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, ['txid']);
+			berycoind._getAddressDetailedTransaction = sinon.stub().callsArgWith(2, new Error('test'));
+			berycoind.getAddressHistory(address, {}, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd._getAddressStrings.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd._getAddressDetailedTransaction.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getAddressStrings.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind._getAddressDetailedTransaction.callCount.should.equal(1);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('give error from getAddressTxids', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getAddressStrings');
-			sinon.spy(qtumd, 'getAddressTxids');
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, new Error('test'));
-			qtumd.getAddressHistory('address', {}, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getAddressStrings');
+			sinon.spy(berycoind, 'getAddressTxids');
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, new Error('test'));
+			berycoind.getAddressHistory('address', {}, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd._getAddressStrings.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getAddressStrings.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will paginate', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getAddressStrings');
-			sinon.spy(qtumd, '_paginateTxids');
-			qtumd._getAddressDetailedTransaction = function(txid, options, callback) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getAddressStrings');
+			sinon.spy(berycoind, '_paginateTxids');
+			berycoind._getAddressDetailedTransaction = function(txid, options, callback) {
 				callback(null, txid);
 			};
-			sinon.spy(qtumd, '_getAddressDetailedTransaction');
+			sinon.spy(berycoind, '_getAddressDetailedTransaction');
 			var txids = ['one', 'two', 'three', 'four'];
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, txids);
-			qtumd.getAddressHistory('address', { from: 1, to: 3 }, function(err, data) {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, txids);
+			berycoind.getAddressHistory('address', { from: 1, to: 3 }, function(err, data) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd._getAddressStrings.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd._getAddressDetailedTransaction.callCount.should.equal(2);
-				qtumd._paginateTxids.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getAddressStrings.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind._getAddressDetailedTransaction.callCount.should.equal(2);
+				berycoind._paginateTxids.callCount.should.equal(1);
 				data.items.length.should.equal(2);
 				data.items.should.deep.equal(['two', 'three']);
 				done();
@@ -3822,8 +3822,8 @@ describe('Qtum Service', function() {
 		var memtxid1 = 'dd23969aec657934d4e14e6ffb3aa7b48a7bdafef2eccd5fcc644f48c72e5116';
 		var memtxid2 = '28bf4485cc8f869bb8f2aa4beb8ba0a6da1059e0c8275d86ee1fa217dac0a924';
 		it('will handle error from getAddressTxids', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, null, {
 						result: [
@@ -3834,11 +3834,11 @@ describe('Qtum Service', function() {
 					})
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, new Error('test'));
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {});
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, new Error('test'));
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {});
 			var address = '';
 			var options = {};
-			qtumd.getAddressSummary(address, options, function(err) {
+			berycoind.getAddressSummary(address, options, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('test');
@@ -3846,8 +3846,8 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will handle error from getAddressBalance', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, null, {
 						result: [
@@ -3858,11 +3858,11 @@ describe('Qtum Service', function() {
 					})
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, {});
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, new Error('test'), {});
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, {});
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, new Error('test'), {});
 			var address = '';
 			var options = {};
-			qtumd.getAddressSummary(address, options, function(err) {
+			berycoind.getAddressSummary(address, options, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('test');
@@ -3870,17 +3870,17 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will handle error from client getAddressMempool', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, {});
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {});
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, {});
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {});
 			var address = '';
 			var options = {};
-			qtumd.getAddressSummary(address, options, function(err) {
+			berycoind.getAddressSummary(address, options, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(Error);
 				err.message.should.equal('Test error');
@@ -3888,12 +3888,12 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('should set all properties', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_paginateTxids');
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_paginateTxids');
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, null, {
 						result: [
@@ -3909,20 +3909,20 @@ describe('Qtum Service', function() {
 					})
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {
 				received: 30 * 1e8,
 				balance: 20 * 1e8
 			});
 			var address = 'qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR';
 			var options = {};
-			qtumd.getAddressSummary(address, options, function(err, summary) {
-				qtumd._paginateTxids.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd.getAddressBalance.callCount.should.equal(1);
-				qtumd._paginateTxids.args[0][1].should.equal(0);
-				qtumd._paginateTxids.args[0][2].should.equal(1000);
+			berycoind.getAddressSummary(address, options, function(err, summary) {
+				berycoind._paginateTxids.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind.getAddressBalance.callCount.should.equal(1);
+				berycoind._paginateTxids.args[0][1].should.equal(0);
+				berycoind._paginateTxids.args[0][2].should.equal(1000);
 				summary.appearances.should.equal(3);
 				summary.totalReceived.should.equal(3000000000);
 				summary.totalSpent.should.equal(1000000000);
@@ -3940,11 +3940,11 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will give error with "from" and "to" range that exceeds max size', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_normalizeAddressArg');
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, null, {
 						result: [
@@ -3960,8 +3960,8 @@ describe('Qtum Service', function() {
 					})
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {
 				received: 30 * 1e8,
 				balance: 20 * 1e8
 			});
@@ -3970,20 +3970,20 @@ describe('Qtum Service', function() {
 				from: 0,
 				to: 1001
 			};
-			qtumd.getAddressSummary(address, options, function(err) {
+			berycoind.getAddressSummary(address, options, function(err) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				err.message.match(/^\"from/);
 				done();
 			});
 		});
 		it('will get from cache with noTxList', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_paginateTxids');
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_paginateTxids');
 
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: sinon.stub().callsArgWith(1, null, {
 						result: [
@@ -3999,8 +3999,8 @@ describe('Qtum Service', function() {
 					})
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {
 				received: 30 * 1e8,
 				balance: 20 * 1e8
 			});
@@ -4017,33 +4017,33 @@ describe('Qtum Service', function() {
 				summary.unconfirmedBalance.should.equal(-900001);
 				should.not.exist(summary.txids);
 			}
-			qtumd.getAddressSummary(address, options, function(err, summary) {
+			berycoind.getAddressSummary(address, options, function(err, summary) {
 				checkSummary(summary);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd.getAddressBalance.callCount.should.equal(1);
-				qtumd.getAddressSummary(address, options, function(err, summary) {
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind.getAddressBalance.callCount.should.equal(1);
+				berycoind.getAddressSummary(address, options, function(err, summary) {
 					checkSummary(summary);
-					qtumd._paginateTxids.callCount.should.equal(0);
-					qtumd._normalizeAddressArg.callCount.should.equal(2);
-					qtumd.getAddressTxids.callCount.should.equal(1);
-					qtumd.getAddressBalance.callCount.should.equal(1);
+					berycoind._paginateTxids.callCount.should.equal(0);
+					berycoind._normalizeAddressArg.callCount.should.equal(2);
+					berycoind.getAddressTxids.callCount.should.equal(1);
+					berycoind.getAddressBalance.callCount.should.equal(1);
 					done();
 				});
 			});
 		});
 		it('will skip querying the mempool with queryMempool set to false', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getAddressMempool = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: getAddressMempool
 				}
 			});
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_paginateTxids');
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_paginateTxids');
 
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {
 				received: 30 * 1e8,
 				balance: 20 * 1e8
 			});
@@ -4051,41 +4051,41 @@ describe('Qtum Service', function() {
 			var options = {
 				queryMempool: false
 			};
-			qtumd.getAddressSummary(address, options, function() {
+			berycoind.getAddressSummary(address, options, function() {
 				getAddressMempool.callCount.should.equal(0);
-				qtumd._paginateTxids.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd.getAddressBalance.callCount.should.equal(1);
+				berycoind._paginateTxids.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind.getAddressBalance.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will give error from _paginateTxids', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_paginateTxids');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_paginateTxids');
 			var getAddressMempool = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: getAddressMempool
 				}
 			});
-			qtumd.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
-			qtumd.getAddressBalance = sinon.stub().callsArgWith(2, null, {
+			berycoind.getAddressTxids = sinon.stub().callsArgWith(2, null, [txid1, txid2, txid3]);
+			berycoind.getAddressBalance = sinon.stub().callsArgWith(2, null, {
 				received: 30 * 1e8,
 				balance: 20 * 1e8
 			});
-			qtumd._paginateTxids = sinon.stub().throws(new Error('test'));
+			berycoind._paginateTxids = sinon.stub().throws(new Error('test'));
 			var address = 'qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR';
 			var options = {
 				queryMempool: false
 			};
-			qtumd.getAddressSummary(address, options, function(err) {
+			berycoind.getAddressSummary(address, options, function(err) {
 				getAddressMempool.callCount.should.equal(0);
-				qtumd._paginateTxids.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
-				qtumd.getAddressTxids.callCount.should.equal(1);
-				qtumd.getAddressBalance.callCount.should.equal(1);
+				berycoind._paginateTxids.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
+				berycoind.getAddressTxids.callCount.should.equal(1);
+				berycoind.getAddressBalance.callCount.should.equal(1);
 				err.should.be.instanceOf(Error);
 				err.message.should.equal('test');
 				done();
@@ -4097,56 +4097,56 @@ describe('Qtum Service', function() {
 		var blockhash = 'ba163051fc47fc78f520a01faae6356646e7465a139e2ca789ca3cfbcec96d64';
 		var blockhex = '00000020d4ff21181cebdf54168db98ee5334213f0b11173612775c91fa4d6856cf6afb65ffd0ea1254ec9da7eca0249dead0e4e0f8b1329f6efcb7bd3f3c8e9e4771e29106f785ab17e171a00000000bcb7d21fb5fd547ab6f0d138669fad4dac03d6201b2449d8febc9328ce4b9068ad54137042cbed624d778860d64e8598f15ff01afa47090721e16493e9ab8faa88ebeb7cd7e7cfeb98ef3d3fa69c1da7adea011f8cb7b264c5f9044b1e21ce3a01000000463044022049d003c095a2115053a58b60a65c741603de9c6449e20f3828525a215bc3de4802205c5cbd7f32c29a58883dfca2576d1454e61ab236865e904cf7e6a4fdaddca34d02020000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff0503fe3d0100ffffffff020000000000000000000000000000000000266a24aa21a9ed598bdca4eab6001d5753ba33e9a50b1986649f4b477948b5f761decd6b742b4e0120000000000000000000000000000000000000000000000000000000000000000000000000020000000188ebeb7cd7e7cfeb98ef3d3fa69c1da7adea011f8cb7b264c5f9044b1e21ce3a010000004847304402201705c73821a6f91be123d1184aa6919f6bb8c86ec2928a793940078eec9d8a2502202234200415dd8c39d651cc4c17983dbf86f5cbc9385114c0f947db8838002a1801ffffffff0b00000000000000000000485d1b03000000232102ab266cbcd634d79269d7326deb622dd8abe83e5560734131cfebb40829213c72ac005a6202000000001976a914b29ec1e265ccb28ad6da4451eb9f275dcebc022688ac005a6202000000001976a9147fce39209069acc415e14ee3f506ee46f8bf644088ac005a6202000000001976a914b29ec1e265ccb28ad6da4451eb9f275dcebc022688ac005a6202000000001976a9145657742155679a88eb56bfe606163ceef3f42d8188ac005a6202000000001976a914ca01e35383979bdec15ce10a88cbdc6219ab3b0988ac005a6202000000001976a914a1bd7f3b948aa9a77c6486ad5f1ebfe247fab4d488ac005a6202000000001976a9149d7c71eff196e749c5ec71277f50d4aef006e4f988ac005a6202000000001976a9142820129a61e503e1fdecacd1133295ef51d2379a88ac005a6202000000001976a9145657742155679a88eb56bfe606163ceef3f42d8188ac00000000';
 		it('will give rpc error from client getblockhash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' })
 				}
 			});
-			qtumd.getRawBlock(10, function(err) {
+			berycoind.getRawBlock(10, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will give rcp error from client getblock', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 
-			sinon.spy(qtumd, '_tryAllClients');
-			qtumd.nodes.push({
+			sinon.spy(berycoind, '_tryAllClients');
+			berycoind.nodes.push({
 				client: {
 					getBlock: sinon.stub().callsArgWith(2, { code: -1, message: 'Test error' })
 				}
 			});
-			qtumd.getRawBlock(blockhash, function(err) {
+			berycoind.getRawBlock(blockhash, function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				err.should.be.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will try all nodes for getblock', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockWithError = sinon.stub().callsArgWith(2, { code: -1, message: 'Test error' });
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlockWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlockWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: sinon.stub().callsArgWith(2, null, {
 						result: blockhex
 					})
 				}
 			});
-			qtumd.getRawBlock(blockhash, function(err, buffer) {
+			berycoind.getRawBlock(blockhash, function(err, buffer) {
 				if (err) {
 					return done(err);
 				}
@@ -4156,22 +4156,22 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will get block from cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock
 				}
 			});
-			qtumd.getRawBlock(blockhash, function(err, buffer) {
+			berycoind.getRawBlock(blockhash, function(err, buffer) {
 				if (err) {
 					return done(err);
 				}
 				buffer.should.be.instanceof(Buffer);
 				getBlock.callCount.should.equal(1);
-				qtumd.getRawBlock(blockhash, function(err, buffer) {
+				berycoind.getRawBlock(blockhash, function(err, buffer) {
 					if (err) {
 						return done(err);
 					}
@@ -4182,20 +4182,20 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will get block by height', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: 'ba163051fc47fc78f520a01faae6356646e7465a139e2ca789ca3cfbcec96d64'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getRawBlock(0, function(err, buffer) {
+			berycoind.getRawBlock(0, function(err, buffer) {
 				if (err) {
 					return done(err);
 				}
@@ -4210,18 +4210,18 @@ describe('Qtum Service', function() {
 	describe('#getBlock', function() {
 		var blockhex = '0100000000000000000000000000000000000000000000000000000000000000000000006db905142382324db417761891f2d2f355ea92f27ab0fc35e59e90b50e0534edf5d2af59ffff001fc1257000e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec9141077149556e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b4210000000000000000000000000000000000000000000000000000000000000000ffffffff000101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff420004bf91221d0104395365702030322c203230313720426974636f696e20627265616b732024352c30303020696e206c6174657374207072696365206672656e7a79ffffffff0100f2052a010000004341040d61d8653448c98731ee5fffd303c15e71ec2057b77f11ab3601979728cdaff2d68afbba14e4fa0bc44f2072b0b23ef63717f8cdfbe58dcd33f32b6afe98741aac00000000';
 		it('will give an rpc error from client getblock', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, { code: -1, message: 'Test error' });
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlock(0, function(err) {
-				qtumd._tryAllClients.callCount.should.equal(2);
+			berycoind.getBlock(0, function(err) {
+				berycoind._tryAllClients.callCount.should.equal(2);
 				getBlock.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
@@ -4229,128 +4229,128 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will give an rpc error from client getblockhash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlock(0, function(err) {
-				qtumd._tryAllClients.callCount.should.equal(1);
+			berycoind.getBlock(0, function(err) {
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 				done();
 			});
 		});
-		it('will getblock as qtumcore object from height', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+		it('will getblock as berycoincore object from height', function(done) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: 'ea6aa9c122d7bd1a9a994f19de74e59fd03a811be5c892ff5987943a2742ee7c'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlock(0, function(err, block) {
+			berycoind.getBlock(0, function(err, block) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(2);
+				berycoind._tryAllClients.callCount.should.equal(2);
 				getBlock.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				getBlock.args[0][0].should.equal('ea6aa9c122d7bd1a9a994f19de74e59fd03a811be5c892ff5987943a2742ee7c');
 				getBlock.args[0][1].should.equal(false);
-				block.should.be.instanceof(qtumcore.Block);
+				block.should.be.instanceof(berycoincore.Block);
 				done();
 			});
 		});
-		it('will getblock as qtumcore object', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+		it('will getblock as berycoincore object', function(done) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
 			var getBlockHash = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlock('00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b', function(err, block) {
+			berycoind.getBlock('00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b', function(err, block) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(0);
 				getBlock.args[0][0].should.equal('00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b');
 				getBlock.args[0][1].should.equal(false);
-				block.should.be.instanceof(qtumcore.Block);
+				block.should.be.instanceof(berycoincore.Block);
 				done();
 			});
 		});
 		it('will get block from cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
 			var getBlockHash = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
 			var hash = '00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b';
-			qtumd.getBlock(hash, function(err, block) {
+			berycoind.getBlock(hash, function(err, block) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(0);
 				getBlock.callCount.should.equal(1);
-				block.should.be.instanceof(qtumcore.Block);
-				qtumd.getBlock(hash, function(err, block) {
+				block.should.be.instanceof(berycoincore.Block);
+				berycoind.getBlock(hash, function(err, block) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getBlock.callCount.should.equal(1);
 					getBlockHash.callCount.should.equal(0);
-					block.should.be.instanceof(qtumcore.Block);
+					block.should.be.instanceof(berycoincore.Block);
 					done();
 				});
 			});
 		});
 		it('will get block from cache with height (but not height)', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockhex
 			});
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: '00000000050a6d07f583beba2d803296eb1e9d4980c4a20f206c584e89a4f02b'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlock(0, function(err, block) {
+			berycoind.getBlock(0, function(err, block) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(2);
+				berycoind._tryAllClients.callCount.should.equal(2);
 				getBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
-				block.should.be.instanceof(qtumcore.Block);
-				qtumd.getBlock(0, function(err, block) {
+				block.should.be.instanceof(berycoincore.Block);
+				berycoind.getBlock(0, function(err, block) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(3);
+					berycoind._tryAllClients.callCount.should.equal(3);
 					getBlockHash.callCount.should.equal(2);
 					getBlock.callCount.should.equal(1);
-					block.should.be.instanceof(qtumcore.Block);
+					block.should.be.instanceof(berycoincore.Block);
 					done();
 				});
 			});
@@ -4359,14 +4359,14 @@ describe('Qtum Service', function() {
 
 	describe('#getBlockHashesByTimestamp', function() {
 		it('should give an rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockHashes = sinon.stub().callsArgWith(3, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHashes: getBlockHashes
 				}
 			});
-			qtumd.getBlockHashesByTimestamp(1517410000, 1517843954, function(err, hashes) {
+			berycoind.getBlockHashesByTimestamp(1517410000, 1517843954, function(err, hashes) {
 				should.exist(err);
 				err.message.should.equal('error');
 				getBlockHashes.callCount.should.equal(1);
@@ -4374,18 +4374,18 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('should get the correct block hashes', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var block1 = 'a7efd3834b11c33c86841087d086d9c8a098c021b3c39c3133a085e32c7bdf46';
 			var block2 = 'a010c9c94c2eb1267ef00ea05218c414a8793e1ff7694a2fc20d02c365bdbb4a';
 			var getBlockHashes = sinon.stub().callsArgWith(3, null, {
 				result: [block2, block1]
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHashes: getBlockHashes
 				}
 			});
-			qtumd.getBlockHashesByTimestamp(1517410000, 1517843954, function(err, hashes) {
+			berycoind.getBlockHashesByTimestamp(1517410000, 1517843954, function(err, hashes) {
 				should.not.exist(err);
 				getBlockHashes.callCount.should.equal(1);
 				hashes.should.deep.equal([block2, block1]);
@@ -4397,52 +4397,52 @@ describe('Qtum Service', function() {
 	describe('#getBlockHeader', function() {
 		var blockhash = 'a010c9c94c2eb1267ef00ea05218c414a8793e1ff7694a2fc20d02c365bdbb4a';
 		it('will give error from getBlockHash', function() {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlockHeader(10, function(err) {
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+			berycoind.getBlockHeader(10, function(err) {
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 			});
 		});
 		it('it will give rpc error from client getblockheader', function() {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHeader = sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHeader: getBlockHeader
 				}
 			});
-			qtumd.getBlockHeader(blockhash, function(err) {
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+			berycoind.getBlockHeader(blockhash, function(err) {
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 			});
 		});
 		it('it will give rpc error from client getblockhash', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockHeader = sinon.stub();
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHeader: getBlockHeader,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlockHeader(0, function(err) {
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+			berycoind.getBlockHeader(0, function(err) {
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				err.should.be.instanceof(Error);
 			});
 		});
 		it('will give result from client getblockheader (from height)', function() {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var result = {
 				hash: 'a010c9c94c2eb1267ef00ea05218c414a8793e1ff7694a2fc20d02c365bdbb4a',
 				version: 536870912,
@@ -4478,22 +4478,22 @@ describe('Qtum Service', function() {
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: blockhash
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHeader: getBlockHeader,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlockHeader(81419, function(err, blockHeader) {
+			berycoind.getBlockHeader(81419, function(err, blockHeader) {
 				should.not.exist(err);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHeader.args[0][0].should.equal(blockhash);
 				blockHeader.should.deep.equal(result);
 			});
 		});
 		it('will give result from client getblockheader (from hash)', function() {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var result = {
 				hash: 'a010c9c94c2eb1267ef00ea05218c414a8793e1ff7694a2fc20d02c365bdbb4a',
 				version: 536870912,
@@ -4527,15 +4527,15 @@ describe('Qtum Service', function() {
 				}
 			});
 			var getBlockHash = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHeader: getBlockHeader,
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getBlockHeader(blockhash, function(err, blockHeader) {
+			berycoind.getBlockHeader(blockhash, function(err, blockHeader) {
 				should.not.exist(err);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(0);
 				blockHeader.should.deep.equal(result);
 			});
@@ -4544,131 +4544,131 @@ describe('Qtum Service', function() {
 
 	describe('#_maybeGetBlockHash', function() {
 		it('will not get block hash with an address', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub();
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash('qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX', function(err, hash) {
+			berycoind._maybeGetBlockHash('qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX', function(err, hash) {
 				if (err) {
 					return done(err);
 				}
-				qtumd._tryAllClients.callCount.should.equal(0);
+				berycoind._tryAllClients.callCount.should.equal(0);
 				getBlockHash.callCount.should.equal(0);
 				hash.should.equal('qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX');
 				done();
 			});
 		});
 		it('will not get block hash with non zero-nine numeric string', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBlockHash = sinon.stub();
-			sinon.spy(qtumd, '_tryAllClients');
-			qtumd.nodes.push({
+			sinon.spy(berycoind, '_tryAllClients');
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash('109a', function(err, hash) {
+			berycoind._maybeGetBlockHash('109a', function(err, hash) {
 				if (err) {
 					return done(err);
 				}
 				getBlockHash.callCount.should.equal(0);
-				qtumd._tryAllClients.callCount.should.equal(0);
+				berycoind._tryAllClients.callCount.should.equal(0);
 				hash.should.equal('109a');
 				done();
 			});
 		});
 		it('will get the block hash if argument is a number', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: 'blockhash'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash(10, function(err, hash) {
+			berycoind._maybeGetBlockHash(10, function(err, hash) {
 				if (err) {
 					return done(err);
 				}
 				hash.should.equal('blockhash');
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will get the block hash if argument is a number (as string)', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: 'blockhash'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash('10', function(err, hash) {
+			berycoind._maybeGetBlockHash('10', function(err, hash) {
 				if (err) {
 					return done(err);
 				}
 				hash.should.equal('blockhash');
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will try multiple nodes if one fails', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: 'blockhash'
 			});
 			getBlockHash.onCall(0).callsArgWith(1, { code: -1, message: 'test' });
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash(10, function(err, hash) {
+			berycoind._maybeGetBlockHash(10, function(err, hash) {
 				if (err) {
 					return done(err);
 				}
 				hash.should.equal('blockhash');
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(2);
 				done();
 			});
 		});
 		it('will give error from getBlockHash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'test' });
-			qtumd.tryAllInterval = 1;
-			qtumd.nodes.push({
+			berycoind.tryAllInterval = 1;
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd._maybeGetBlockHash(10, function(err, hash) {
+			berycoind._maybeGetBlockHash(10, function(err, hash) {
 				getBlockHash.callCount.should.equal(2);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				err.should.be.instanceOf(Error);
 				err.message.should.equal('test');
 				err.code.should.equal(-1);
@@ -4680,34 +4680,34 @@ describe('Qtum Service', function() {
 	describe('#getBlockOverview', function() {
 		var blockhash = 'a010c9c94c2eb1267ef00ea05218c414a8793e1ff7694a2fc20d02c365bdbb4a';
 		it('will handle error from maybeGetBlockHash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
-			qtumd._maybeGetBlockHash = sinon.stub().callsArgWith(1, new Error('test'));
-			qtumd.getBlockOverview(blockhash, function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
+			berycoind._maybeGetBlockHash = sinon.stub().callsArgWith(1, new Error('test'));
+			berycoind.getBlockOverview(blockhash, function(err) {
 				err.should.be.instanceOf(Error);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will give error from client.getBlock', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlock = sinon.stub().callsArgWith(2, { code: -1, message: 'test' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock
 				}
 			});
-			qtumd.getBlockOverview(blockhash, function(err) {
+			berycoind.getBlockOverview(blockhash, function(err) {
 				err.should.be.instanceOf(Error);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				err.message.should.equal('test');
 				done();
 			});
 		});
 		it('will give expected result', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var blockResult = {
 				hash: blockhash,
 				version: 536870912,
@@ -4726,7 +4726,7 @@ describe('Qtum Service', function() {
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: blockResult
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock
 				}
@@ -4746,14 +4746,14 @@ describe('Qtum Service', function() {
 				blockOverview.bits.should.equal('1a0ff41e');
 				blockOverview.difficulty.should.equal(1051610.804201489);
 			}
-			qtumd.getBlockOverview(blockhash, function(err, blockOverview) {
+			berycoind.getBlockOverview(blockhash, function(err, blockOverview) {
 				if (err) {
 					return done(err);
 				}
 				checkBlock(blockOverview);
-				qtumd.getBlockOverview(blockhash, function(err, blockOverview) {
+				berycoind.getBlockOverview(blockhash, function(err, blockOverview) {
 					checkBlock(blockOverview);
-					qtumd._maybeGetBlockHash.callCount.should.equal(2);
+					berycoind._maybeGetBlockHash.callCount.should.equal(2);
 					getBlock.callCount.should.equal(1);
 					done();
 				});
@@ -4763,14 +4763,14 @@ describe('Qtum Service', function() {
 
 	describe('#estimateFee', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var estimateFee = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					estimateFee: estimateFee
 				}
 			});
-			qtumd.estimateFee(1, function(err) {
+			berycoind.estimateFee(1, function(err) {
 				should.exist(err);
 				estimateFee.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -4778,16 +4778,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will call client estimateFee and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var estimateFee = sinon.stub().callsArgWith(1, null, {
 				result: -1
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					estimateFee: estimateFee
 				}
 			});
-			qtumd.estimateFee(1, function(err, feesPerKb) {
+			berycoind.estimateFee(1, function(err, feesPerKb) {
 				if (err) {
 					return done(err);
 				}
@@ -4799,32 +4799,32 @@ describe('Qtum Service', function() {
 	});
 
 	describe('#sendTransaction', function(done) {
-		var tx = qtumcore.Transaction(txhex);
+		var tx = berycoincore.Transaction(txhex);
 		it('will give rpc error', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var sendRawTransaction = sinon.stub().callsArgWith(2, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					sendRawTransaction: sendRawTransaction
 				}
 			});
-			qtumd.sendTransaction(txhex, function(err) {
+			berycoind.sendTransaction(txhex, function(err) {
 				should.exist(err);
 				sendRawTransaction.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 			});
 		});
 		it('will send to client and get hash', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var sendRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: tx.hash
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					sendRawTransaction: sendRawTransaction
 				}
 			});
-			qtumd.sendTransaction(txhex, function(err, hash) {
+			berycoind.sendTransaction(txhex, function(err, hash) {
 				if (err) {
 					return done(err);
 				}
@@ -4833,16 +4833,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will send to client with absurd fees and get hash', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var sendRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: tx.hash
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					sendRawTransaction: sendRawTransaction
 				}
 			});
-			qtumd.sendTransaction(txhex, { allowAbsurdFees: true }, function(err, hash) {
+			berycoind.sendTransaction(txhex, { allowAbsurdFees: true }, function(err, hash) {
 				if (err) {
 					return done(err);
 				}
@@ -4851,18 +4851,18 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('missing callback will throw error', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var sendRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: tx.hash
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					sendRawTransaction: sendRawTransaction
 				}
 			});
-			var transaction = qtumcore.Transaction();
+			var transaction = berycoincore.Transaction();
 			(function() {
-				qtumd.sendTransaction(transaction);
+				berycoind.sendTransaction(transaction);
 			}).should.throw(Error);
 			sendRawTransaction.callCount.should.equal(1);
 		});
@@ -4870,51 +4870,51 @@ describe('Qtum Service', function() {
 
 	describe('#getRawTransaction', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getRawTransaction = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			sinon.spy(qtumd, '_tryAllClients');
-			qtumd.nodes.push({
+			sinon.spy(berycoind, '_tryAllClients');
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getRawTransaction('txid', function(err) {
+			berycoind.getRawTransaction('txid', function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will try all nodes', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.tryAllInterval = 1;
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.tryAllInterval = 1;
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransactionWithError = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
 			var getRawTransaction = sinon.stub().callsArgWith(1, null, {
 				result: txhex
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransactionWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransactionWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getRawTransaction('txid', function(err, tx) {
+			berycoind.getRawTransaction('txid', function(err, tx) {
 				if (err) {
 					return done(err);
 				}
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				getRawTransactionWithError.callCount.should.equal(2);
 				tx.should.be.an.instanceof(Buffer);
@@ -4922,27 +4922,27 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will get from cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getRawTransaction = sinon.stub().callsArgWith(1, null, {
 				result: txhex
 			});
-			sinon.spy(qtumd, '_tryAllClients');
-			qtumd.nodes.push({
+			sinon.spy(berycoind, '_tryAllClients');
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getRawTransaction('txid', function(err, tx) {
+			berycoind.getRawTransaction('txid', function(err, tx) {
 				if (err) {
 					return done(err);
 				}
 				should.exist(tx);
 				tx.should.be.an.instanceof(Buffer);
 
-				qtumd.getRawTransaction('txid', function(err, tx) {
+				berycoind.getRawTransaction('txid', function(err, tx) {
 					should.exist(tx);
 					tx.should.be.an.instanceof(Buffer);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getRawTransaction.callCount.should.equal(1);
 					done();
 				});
@@ -4952,78 +4952,78 @@ describe('Qtum Service', function() {
 
 	describe('#getTransaction', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getTransaction('txid', function(err) {
+			berycoind.getTransaction('txid', function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will try all nodes', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.tryAllInterval = 1;
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.tryAllInterval = 1;
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransactionWithError = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
 			var getRawTransaction = sinon.stub().callsArgWith(1, null, {
 				result: txhex
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransactionWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransactionWithError
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getTransaction('txid', function(err, tx) {
+			berycoind.getTransaction('txid', function(err, tx) {
 				if (err) {
 					return done(err);
 				}
 				should.exist(tx);
 				getRawTransactionWithError.callCount.should.equal(2);
 				getRawTransaction.callCount.should.equal(1);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				tx.should.be.an.instanceof(qtumcore.Transaction);
+				berycoind._tryAllClients.callCount.should.equal(1);
+				tx.should.be.an.instanceof(berycoincore.Transaction);
 				done();
 			});
 		});
 		it('will get from cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(1, null, {
 				result: txhex
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
-			qtumd.getTransaction('txid', function(err, tx) {
+			berycoind.getTransaction('txid', function(err, tx) {
 				if (err) {
 					return done(err);
 				}
 				should.exist(tx);
-				tx.should.be.an.instanceof(qtumcore.Transaction);
+				tx.should.be.an.instanceof(berycoincore.Transaction);
 
-				qtumd.getTransaction('txid', function(err, tx) {
+				berycoind.getTransaction('txid', function(err, tx) {
 					should.exist(tx);
-					qtumd._tryAllClients.callCount.should.equal(1);
-					tx.should.be.an.instanceof(qtumcore.Transaction);
+					berycoind._tryAllClients.callCount.should.equal(1);
+					tx.should.be.an.instanceof(berycoincore.Transaction);
 					getRawTransaction.callCount.should.equal(1);
 					done();
 				});
@@ -5085,28 +5085,28 @@ describe('Qtum Service', function() {
 		};
 
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
-			qtumd.nodes.push({
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: sinon.stub().callsArgWith(2, { code: -1, message: 'Test error' })
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err) {
+			berycoind.getDetailedTransaction(txid, function(err) {
 				should.exist(err);
 				err.should.be.instanceof(errors.RPCError);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('should give a transaction with all properties', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rpcRawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
@@ -5144,25 +5144,25 @@ describe('Qtum Service', function() {
 				should.equal(output.spentIndex, 1);
 				should.equal(output.spentHeight, 81802);
 			}
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				if (err) {
 					return done(err);
 				}
 				checkTx(tx);
-				qtumd.getDetailedTransaction(txid, function(err, tx) {
+				berycoind.getDetailedTransaction(txid, function(err, tx) {
 					if (err) {
 						return done(err);
 					}
 					checkTx(tx);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getRawTransaction.callCount.should.equal(1);
 					done();
 				});
 			});
 		});
 		it('should set coinbase to true', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			delete rawTransaction.vin[0];
 			rawTransaction.vin = [
@@ -5173,16 +5173,16 @@ describe('Qtum Service', function() {
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
 				should.equal(tx.coinbase, true);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				tx.inputSatoshis.should.be.equal(0);
 				tx.feeSatoshis.should.be.equal(0);
@@ -5190,97 +5190,97 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will not include address if address length is zero', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			rawTransaction.vout[0].scriptPubKey.addresses = [];
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				should.equal(tx.outputs[0].address, null);
 				getRawTransaction.callCount.should.equal(1);
 				done();
 			});
 		});
 		it('will not include address if address length is greater than 1', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			rawTransaction.vout[0].scriptPubKey.addresses = ['one', 'two'];
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				should.equal(tx.outputs[0].address, null);
 				done();
 			});
 		});
 		it('will handle scriptPubKey.addresses not being set', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			delete rawTransaction.vout[0].scriptPubKey['addresses'];
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				should.equal(tx.outputs[0].address, null);
 				done();
 			});
 		});
 		it('will not include script if input missing scriptSig or coinbase', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			delete rawTransaction.vin[0].scriptSig;
 			delete rawTransaction.vin[0].coinbase;
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: rawTransaction
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				should.equal(tx.inputs[0].script, null);
 				done();
 			});
 		});
 		it('will set height to -1 if missing height and get time from raw transaction', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			delete rawTransaction.height;
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
@@ -5289,16 +5289,16 @@ describe('Qtum Service', function() {
 			var getMempoolEntry = sinon.stub().callsArgWith(1, null, {
 				result: {}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 					getMempoolEntry: getMempoolEntry
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				should.equal(tx.height, -1);
 				should.equal(tx.blockTimestamp, 1517898352);
@@ -5306,8 +5306,8 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will set height to -1 if missing height and get time from mempoolentry', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var rawTransaction = JSON.parse((JSON.stringify(rpcRawTransaction)));
 			delete rawTransaction.time;
 			delete rawTransaction.height;
@@ -5319,16 +5319,16 @@ describe('Qtum Service', function() {
 					time: 1517898352
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 					getMempoolEntry: getMempoolEntry
 				}
 			});
 			var txid = '36b942e65c828af624c7a25de25027fba0dd89d4b29a46ddd2648af6e4db1955';
-			qtumd.getDetailedTransaction(txid, function(err, tx) {
+			berycoind.getDetailedTransaction(txid, function(err, tx) {
 				should.exist(tx);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				should.equal(tx.height, -1);
 				should.equal(tx.receivedTime, 1517898352);
@@ -5339,14 +5339,14 @@ describe('Qtum Service', function() {
 
 	describe('#getBestBlockHash', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash
 				}
 			});
-			qtumd.getBestBlockHash(function(err) {
+			berycoind.getBestBlockHash(function(err) {
 				should.exist(err);
 				getBestBlockHash.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -5354,16 +5354,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will call client getInfo and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getBestBlockHash = sinon.stub().callsArgWith(0, null, {
 				result: '0c9d2f58e10d9089c8543f1a519023eef5f73e659258b1a433e8cc9296a42e72'
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBestBlockHash: getBestBlockHash
 				}
 			});
-			qtumd.getBestBlockHash(function(err, hash) {
+			berycoind.getBestBlockHash(function(err, hash) {
 				if (err) {
 					return done(err);
 				}
@@ -5377,14 +5377,14 @@ describe('Qtum Service', function() {
 
 	describe('#getSpentInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSpentInfo = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSpentInfo: getSpentInfo
 				}
 			});
-			qtumd.getSpentInfo({}, function(err) {
+			berycoind.getSpentInfo({}, function(err) {
 				should.exist(err);
 				getSpentInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -5392,14 +5392,14 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will empty object when not found', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSpentInfo = sinon.stub().callsArgWith(1, { message: 'test', code: -5 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSpentInfo: getSpentInfo
 				}
 			});
-			qtumd.getSpentInfo({}, function(err, info) {
+			berycoind.getSpentInfo({}, function(err, info) {
 				should.not.exist(err);
 				getSpentInfo.callCount.should.equal(1);
 				info.should.deep.equal({});
@@ -5407,7 +5407,7 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will call client getSpentInfo and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSpentInfo = sinon.stub().callsArgWith(1, null, {
 				result: {
 					txid: 'txid',
@@ -5415,12 +5415,12 @@ describe('Qtum Service', function() {
 					height: 101
 				}
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSpentInfo: getSpentInfo
 				}
 			});
-			qtumd.getSpentInfo({}, function(err, info) {
+			berycoind.getSpentInfo({}, function(err, info) {
 				if (err) {
 					return done(err);
 				}
@@ -5435,22 +5435,22 @@ describe('Qtum Service', function() {
 
 	describe('#getInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getInfo = sinon.stub().callsArgWith(0, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getInfo: getInfo
 				}
 			});
-			qtumd.getInfo(function(err) {
+			berycoind.getInfo(function(err) {
 				should.exist(err);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will call client getInfo and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.node.getNetworkName = sinon.stub().returns('testnet');
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.node.getNetworkName = sinon.stub().returns('testnet');
 			var getInfo = sinon.stub().callsArgWith(0, null, {
 				result: {
 					"version": 140900,
@@ -5476,20 +5476,20 @@ describe('Qtum Service', function() {
 				}
 			});
 
-			qtumd.getSubsidy = sinon.stub().callsArgWith(1, null, 400000000);
-			qtumd.nodes.push({
+			berycoind.getSubsidy = sinon.stub().callsArgWith(1, null, 400000000);
+			berycoind.nodes.push({
 				client: {
 					getInfo: getInfo,
 				},
 			});
 
-			qtumd.getInfo(function(err, info) {
+			berycoind.getInfo(function(err, info) {
 				if (err) {
 					return done(err);
 				}
 
-				qtumd.getSubsidy.callCount.should.equal(1);
-				qtumd.client.getInfo.callCount.should.equal(1);
+				berycoind.getSubsidy.callCount.should.equal(1);
+				berycoind.client.getInfo.callCount.should.equal(1);
 
 				should.exist(info);
 				should.equal(info.version, 140900);
@@ -5517,14 +5517,14 @@ describe('Qtum Service', function() {
 
 	describe('#generateBlock', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var generate = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					generate: generate
 				}
 			});
-			qtumd.generateBlock(10, function(err) {
+			berycoind.generateBlock(10, function(err) {
 				should.exist(err);
 				generate.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -5532,16 +5532,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will call client generate and give result', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var generate = sinon.stub().callsArgWith(1, null, {
 				result: ['hash']
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					generate: generate
 				}
 			});
-			qtumd.generateBlock(10, function(err, hashes) {
+			berycoind.generateBlock(10, function(err, hashes) {
 				if (err) {
 					return done(err);
 				}
@@ -5555,61 +5555,61 @@ describe('Qtum Service', function() {
 
 	describe('#stop', function() {
 		it('will callback if spawn is not set', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.stop(done);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.stop(done);
 		});
 		it('will exit spawned process', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.spawn = {};
-			qtumd.spawn.process = new EventEmitter();
-			qtumd.spawn.process.kill = sinon.stub();
-			qtumd.stop(done);
-			qtumd.spawn.process.kill.callCount.should.equal(1);
-			qtumd.spawn.process.kill.args[0][0].should.equal('SIGINT');
-			qtumd.spawn.process.emit('exit', 0);
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.spawn = {};
+			berycoind.spawn.process = new EventEmitter();
+			berycoind.spawn.process.kill = sinon.stub();
+			berycoind.stop(done);
+			berycoind.spawn.process.kill.callCount.should.equal(1);
+			berycoind.spawn.process.kill.args[0][0].should.equal('SIGINT');
+			berycoind.spawn.process.emit('exit', 0);
 		});
 		it('will give error with non-zero exit status code', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.spawn = {};
-			qtumd.spawn.process = new EventEmitter();
-			qtumd.spawn.process.kill = sinon.stub();
-			qtumd.stop(function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.spawn = {};
+			berycoind.spawn.process = new EventEmitter();
+			berycoind.spawn.process.kill = sinon.stub();
+			berycoind.stop(function(err) {
 				err.should.be.instanceof(Error);
 				err.code.should.equal(1);
 				done();
 			});
-			qtumd.spawn.process.kill.callCount.should.equal(1);
-			qtumd.spawn.process.kill.args[0][0].should.equal('SIGINT');
-			qtumd.spawn.process.emit('exit', 1);
+			berycoind.spawn.process.kill.callCount.should.equal(1);
+			berycoind.spawn.process.kill.args[0][0].should.equal('SIGINT');
+			berycoind.spawn.process.emit('exit', 1);
 		});
 		it('will stop after timeout', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			qtumd.shutdownTimeout = 300;
-			qtumd.spawn = {};
-			qtumd.spawn.process = new EventEmitter();
-			qtumd.spawn.process.kill = sinon.stub();
-			qtumd.stop(function(err) {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.shutdownTimeout = 300;
+			berycoind.spawn = {};
+			berycoind.spawn.process = new EventEmitter();
+			berycoind.spawn.process.kill = sinon.stub();
+			berycoind.stop(function(err) {
 				err.should.be.instanceof(Error);
 				done();
 			});
-			qtumd.spawn.process.kill.callCount.should.equal(1);
-			qtumd.spawn.process.kill.args[0][0].should.equal('SIGINT');
+			berycoind.spawn.process.kill.callCount.should.equal(1);
+			berycoind.spawn.process.kill.args[0][0].should.equal('SIGINT');
 		});
 	});
 
 	describe('#getAddressesMempoolBalance', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
 			var getAddressMempool = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: getAddressMempool,
 				}
 			});
-			qtumd.getAddressesMempoolBalance([], {}, function(err, result) {
+			berycoind.getAddressesMempoolBalance([], {}, function(err, result) {
 				should.exist(err);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				getAddressMempool.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -5634,21 +5634,21 @@ describe('Qtum Service', function() {
 					prevout: 2
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_normalizeAddressArg');
-			sinon.spy(qtumd, '_getBalanceFromMempool');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_normalizeAddressArg');
+			sinon.spy(berycoind, '_getBalanceFromMempool');
 			var getAddressMempool = sinon.stub().callsArgWith(1, null, {
 				result: deltas
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAddressMempool: getAddressMempool,
 				}
 			});
-			qtumd.getAddressesMempoolBalance([], {}, function(err, result) {
+			berycoind.getAddressesMempoolBalance([], {}, function(err, result) {
 				should.not.exist(err);
-				qtumd._getBalanceFromMempool.callCount.should.equal(1);
-				qtumd._normalizeAddressArg.callCount.should.equal(1);
+				berycoind._getBalanceFromMempool.callCount.should.equal(1);
+				berycoind._normalizeAddressArg.callCount.should.equal(1);
 				getAddressMempool.callCount.should.equal(1);
 				result.unconfirmedBalance.should.equal(0);
 				done();
@@ -5658,17 +5658,17 @@ describe('Qtum Service', function() {
 
 	describe('#getJsonRawTransaction', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(2, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
-			qtumd.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err) {
+			berycoind.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -5853,19 +5853,19 @@ describe('Qtum Service', function() {
 				"time": 1517638448,
 				"blocktime": 1517638448
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: jsonRawTransaction,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
-			qtumd.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
+			berycoind.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
 				response.should.deep.equal(jsonRawTransaction);
 				done();
@@ -6050,23 +6050,23 @@ describe('Qtum Service', function() {
 				"time": 1517638448,
 				"blocktime": 1517638448
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getRawTransaction = sinon.stub().callsArgWith(2, null, {
 				result: jsonRawTransaction,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getRawTransaction: getRawTransaction,
 				}
 			});
-			qtumd.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
+			berycoind.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getRawTransaction.callCount.should.equal(1);
-				qtumd.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
+				berycoind.getJsonRawTransaction('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', function(err, response) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getRawTransaction.callCount.should.equal(1);
 					response.should.deep.equal(jsonRawTransaction);
 					done();
@@ -6077,14 +6077,14 @@ describe('Qtum Service', function() {
 
 	describe('#getSubsidy', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSubsidy = sinon.stub().callsArgWith(1, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSubsidy: getSubsidy,
 				}
 			});
-			qtumd.getSubsidy(0, function(err) {
+			berycoind.getSubsidy(0, function(err) {
 				should.exist(err);
 				getSubsidy.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -6092,16 +6092,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will give subsidy', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSubsidy = sinon.stub().callsArgWith(1, null, {
 				result: 2000000000000
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSubsidy: getSubsidy,
 				}
 			});
-			qtumd.getSubsidy(0, function(err, result) {
+			berycoind.getSubsidy(0, function(err, result) {
 				should.not.exist(err);
 				getSubsidy.callCount.should.equal(1);
 				result.should.equal(2000000000000);
@@ -6109,18 +6109,18 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will give subsidy from cache', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getSubsidy = sinon.stub().callsArgWith(1, null, {
 				result: 2000000000000
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getSubsidy: getSubsidy,
 				}
 			});
-			qtumd.getSubsidy(0, function(err, result) {
+			berycoind.getSubsidy(0, function(err, result) {
 				should.not.exist(err);
-				qtumd.getSubsidy(0, function(err, result) {
+				berycoind.getSubsidy(0, function(err, result) {
 					should.not.exist(err);
 					getSubsidy.callCount.should.equal(1);
 					result.should.equal(2000000000000);
@@ -6132,34 +6132,34 @@ describe('Qtum Service', function() {
 
 	describe('#getJsonBlock', function() {
 		it('will give rpc error from getBlockHash', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlockHash = sinon.stub().callsArgWith(1, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash
 				}
 			});
-			qtumd.getJsonBlock(0, function(err) {
+			berycoind.getJsonBlock(0, function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
 			});
 		});
 		it('will give rpc error from getBlock', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getBlock = sinon.stub().callsArgWith(2, { code: -1, message: 'Test error' });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlock: getBlock
 				}
 			});
-			qtumd.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err) {
+			berycoind.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -6195,25 +6195,25 @@ describe('Qtum Service', function() {
 				"modifier": "45d77baa32c1efcd3c6781d493b797beadb797ccac2bc9d2fcdcd0d2be5a8d9b",
 				"signature": "30440220692319536ca710ee3a88ab1a7340836580e36e238a6832e1d8e524f144bba95b0220299bde798cf5190fa3022058d3d3cf6a0383b57277fc193aeebd7c9ba33194de"
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: '2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23',
 			});
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: jsonBlock,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash,
 					getBlock: getBlock,
 				}
 			});
-			qtumd.getJsonBlock(80000, function(err, result) {
+			berycoind.getJsonBlock(80000, function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(2);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(2);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
 				result.should.deep.equal(jsonBlock);
@@ -6250,23 +6250,23 @@ describe('Qtum Service', function() {
 				"modifier": "45d77baa32c1efcd3c6781d493b797beadb797ccac2bc9d2fcdcd0d2be5a8d9b",
 				"signature": "30440220692319536ca710ee3a88ab1a7340836580e36e238a6832e1d8e524f144bba95b0220299bde798cf5190fa3022058d3d3cf6a0383b57277fc193aeebd7c9ba33194de"
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub();
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: jsonBlock,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash,
 					getBlock: getBlock,
 				}
 			});
-			qtumd.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
+			berycoind.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(0);
 				getBlock.callCount.should.equal(1);
 				result.should.deep.equal(jsonBlock);
@@ -6303,31 +6303,31 @@ describe('Qtum Service', function() {
 				"modifier": "45d77baa32c1efcd3c6781d493b797beadb797ccac2bc9d2fcdcd0d2be5a8d9b",
 				"signature": "30440220692319536ca710ee3a88ab1a7340836580e36e238a6832e1d8e524f144bba95b0220299bde798cf5190fa3022058d3d3cf6a0383b57277fc193aeebd7c9ba33194de"
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub().callsArgWith(1, null, {
 				result: '2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23',
 			});
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: jsonBlock,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash,
 					getBlock: getBlock,
 				}
 			});
-			qtumd.getJsonBlock(80000, function(err, result) {
+			berycoind.getJsonBlock(80000, function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(2);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(2);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(1);
 				getBlock.callCount.should.equal(1);
-				qtumd.getJsonBlock(80000, function(err, result) {
+				berycoind.getJsonBlock(80000, function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(3);
-					qtumd._maybeGetBlockHash.callCount.should.equal(2);
+					berycoind._tryAllClients.callCount.should.equal(3);
+					berycoind._maybeGetBlockHash.callCount.should.equal(2);
 					getBlockHash.callCount.should.equal(2);
 					getBlock.callCount.should.equal(1);
 					result.should.deep.equal(jsonBlock);
@@ -6365,29 +6365,29 @@ describe('Qtum Service', function() {
 				"modifier": "45d77baa32c1efcd3c6781d493b797beadb797ccac2bc9d2fcdcd0d2be5a8d9b",
 				"signature": "30440220692319536ca710ee3a88ab1a7340836580e36e238a6832e1d8e524f144bba95b0220299bde798cf5190fa3022058d3d3cf6a0383b57277fc193aeebd7c9ba33194de"
 			};
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
-			sinon.spy(qtumd, '_maybeGetBlockHash');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
+			sinon.spy(berycoind, '_maybeGetBlockHash');
 			var getBlockHash = sinon.stub();
 			var getBlock = sinon.stub().callsArgWith(2, null, {
 				result: jsonBlock,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getBlockHash: getBlockHash,
 					getBlock: getBlock,
 				}
 			});
-			qtumd.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
+			berycoind.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd._maybeGetBlockHash.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind._maybeGetBlockHash.callCount.should.equal(1);
 				getBlockHash.callCount.should.equal(0);
 				getBlock.callCount.should.equal(1);
-				qtumd.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
+				berycoind.getJsonBlock('2f46b26835e9d768edd2afd393bdaf16cb141a95a663dc1c303e086a8af05d23', function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
-					qtumd._maybeGetBlockHash.callCount.should.equal(2);
+					berycoind._tryAllClients.callCount.should.equal(1);
+					berycoind._maybeGetBlockHash.callCount.should.equal(2);
 					getBlockHash.callCount.should.equal(0);
 					getBlock.callCount.should.equal(1);
 					result.should.deep.equal(jsonBlock);
@@ -6406,37 +6406,37 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will not add an invalid address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter = new EventEmitter();
-			qtumd.subscribeBalance(emitter, ['invalidaddress']);
-			should.not.exist(qtumd.subscriptions.balance['invalidaddress']);
+			berycoind.subscribeBalance(emitter, ['invalidaddress']);
+			should.not.exist(berycoind.subscriptions.balance['invalidaddress']);
 			log.info.callCount.should.equal(1);
 		});
 		it('will add a valid address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter = new EventEmitter();
-			qtumd.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 			log.info.callCount.should.equal(1);
 
 		});
 		it('will handle multiple address subscribers', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
 			log.info.callCount.should.equal(2);
 		});
 		it('will not add the same emitter twice', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
-			qtumd.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 			log.info.callCount.should.equal(2);
 		});
 	});
@@ -6450,66 +6450,66 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('it will remove a subscription', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.exist(qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
-			qtumd.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.exist(berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 			log.info.callCount.should.equal(3);
 		});
 		it('will unsubscribe subscriptions for an emitter', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeBalance(emitter1);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeBalance(emitter1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
 			log.info.callCount.should.equal(1);
 		});
 		it('will NOT unsubscribe subscription with missing address', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeBalance(emitter1, ['qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeBalance(emitter1, ['qNq9mhTgH7KzKKDDwQ87Ain7mtyktheXyX']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(2);
 			log.info.callCount.should.equal(1);
 		});
 		it('will NOT unsubscribe subscription with missing emitter', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter2];
-			qtumd.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'][0].should.equal(emitter2);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter2];
+			berycoind.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'][0].should.equal(emitter2);
 			log.info.callCount.should.equal(1);
 		});
 		it('will remove empty addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.unsubscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			should.not.exist(qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.unsubscribeBalance(emitter1, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.unsubscribeBalance(emitter2, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			should.not.exist(berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 			log.info.callCount.should.equal(2);
 		});
 		it('will unsubscribe emitter for all addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
-			sinon.spy(qtumd, 'unsubscribeBalanceAll');
-			qtumd.unsubscribeBalance(emitter1);
-			qtumd.unsubscribeBalanceAll.callCount.should.equal(1);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
+			sinon.spy(berycoind, 'unsubscribeBalanceAll');
+			berycoind.unsubscribeBalance(emitter1);
+			berycoind.unsubscribeBalanceAll.callCount.should.equal(1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
 			log.info.callCount.should.equal(1);
 		});
 	});
@@ -6523,18 +6523,18 @@ describe('Qtum Service', function() {
 			sandbox.restore();
 		});
 		it('will unsubscribe emitter for all addresses', function() {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var emitter1 = new EventEmitter();
 			var emitter2 = new EventEmitter();
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
-			qtumd.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
-			qtumd.subscriptions.balance['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'] = [emitter2];
-			qtumd.subscriptions.balance['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR'] = [emitter1];
-			qtumd.unsubscribeBalanceAll(emitter1);
-			qtumd.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
-			qtumd.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
-			qtumd.subscriptions.balance['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'].length.should.equal(1);
-			should.not.exist(qtumd.subscriptions.balance['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR']);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'] = [emitter1, emitter2];
+			berycoind.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'] = [emitter1, emitter2];
+			berycoind.subscriptions.balance['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'] = [emitter2];
+			berycoind.subscriptions.balance['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR'] = [emitter1];
+			berycoind.unsubscribeBalanceAll(emitter1);
+			berycoind.subscriptions.balance['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'].length.should.equal(1);
+			berycoind.subscriptions.balance['qRRv2uwzP5YSfWcnkcEUP25jvEDW7BJz1a'].length.should.equal(1);
+			berycoind.subscriptions.balance['qeKn9hTqktwBRNGthi7YTfr8W7VKvZSgU2'].length.should.equal(1);
+			should.not.exist(berycoind.subscriptions.balance['qS3MvbBY8y8xNZx2GVyMEdnQJTCPWoPLUR']);
 			log.info.callCount.should.equal(1);
 		});
 	});
@@ -6554,10 +6554,10 @@ describe('Qtum Service', function() {
 			var addresses = [
 				'qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'
 			];
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_notifyBalanceSubscriber');
-			qtumd._getAddressesFromTransaction = sinon.stub().returns(addresses);
-			qtumd.getAddressSummary = sinon.stub().callsArgWith(2, null, {
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_notifyBalanceSubscriber');
+			berycoind._getAddressesFromTransaction = sinon.stub().returns(addresses);
+			berycoind.getAddressSummary = sinon.stub().callsArgWith(2, null, {
 				address: 'qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z',
 				txid: '8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae',
 				totalReceived: 2,
@@ -6574,8 +6574,8 @@ describe('Qtum Service', function() {
 				data.unconfirmedBalance.should.equal(50);
 				data.address.should.equal(addresses[0]);
 				data.txid.should.equal('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae');
-				qtumd._notifyBalanceSubscriber.callCount.should.equal(1);
-				qtumd._getAddressesFromTransaction.callCount.should.equal(1);
+				berycoind._notifyBalanceSubscriber.callCount.should.equal(1);
+				berycoind._getAddressesFromTransaction.callCount.should.equal(1);
 				emitter.emit.callCount.should.equal(1);
 				done();
 			});
@@ -6583,9 +6583,9 @@ describe('Qtum Service', function() {
 
 			let transaction = {};
 
-			qtumd.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 
-			qtumd._notifyBalanceSubscribers('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', transaction);
+			berycoind._notifyBalanceSubscribers('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae', transaction);
 
 		})
 	});
@@ -6601,9 +6601,9 @@ describe('Qtum Service', function() {
 		it('will notify balance subscriber', function(done) {
 			var emitter = new EventEmitter();
 			sinon.spy(emitter, 'emit');
-			var qtumd = new QtumService(baseConfig);
-			qtumd.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
-			qtumd.getAddressSummary = sinon.stub().callsArgWith(2, null, {
+			var berycoind = new BerycoinService(baseConfig);
+			berycoind.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.getAddressSummary = sinon.stub().callsArgWith(2, null, {
 				address: 'qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z',
 				txid: '8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae',
 				totalReceived: 10,
@@ -6620,29 +6620,29 @@ describe('Qtum Service', function() {
 				data.address.should.equal('qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z');
 				data.txid.should.equal('8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae');
 				emitter.emit.callCount.should.equal(1);
-				qtumd.getAddressSummary.callCount.should.equal(1);
+				berycoind.getAddressSummary.callCount.should.equal(1);
 				done();
 			});
 
 			let transaction = {};
 
-			qtumd.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
+			berycoind.subscribeBalance(emitter, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z']);
 
-			qtumd._notifyBalanceSubscriber('qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z', '8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae');
+			berycoind._notifyBalanceSubscriber('qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z', '8aad6af88ad09d8ce12c09586695c2abf8e5e38908f775e2d0c4b457ee0f4eae');
 
 		});
 	});
 
 	describe('#listUnspent', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var listUnspent = sinon.stub().callsArgWith(3, { message: 'error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					listUnspent: listUnspent,
 				}
 			});
-			qtumd.listUnspent(0, 65000, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'], function(err) {
+			berycoind.listUnspent(0, 65000, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'], function(err) {
 				should.exist(err);
 				listUnspent.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -6663,16 +6663,16 @@ describe('Qtum Service', function() {
 					"solvable": true
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var listUnspent = sinon.stub().callsArgWith(3, null, {
 				result: list
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					listUnspent: listUnspent,
 				}
 			});
-			qtumd.listUnspent(0, 65000, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'], function(err, result) {
+			berycoind.listUnspent(0, 65000, ['qfFYCmU7ACsDUbor4Do9AP1XxkocEKhs3z'], function(err, result) {
 				should.not.exist(err);
 				listUnspent.callCount.should.equal(1);
 				result.should.deep.equal(list);
@@ -6683,14 +6683,14 @@ describe('Qtum Service', function() {
 
 	describe('#getNewAddress', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getNewAddress = sinon.stub().callsArgWith(0, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getNewAddress: getNewAddress,
 				}
 			});
-			qtumd.getNewAddress(function(err, result) {
+			berycoind.getNewAddress(function(err, result) {
 				should.exist(err);
 				getNewAddress.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -6698,16 +6698,16 @@ describe('Qtum Service', function() {
 			});
 		});
 		it('will give new address', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getNewAddress = sinon.stub().callsArgWith(0, null, {
 				result: 'qZLdL7mAQNPHYeBHHtLerPPWNXTTPucEGA',
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getNewAddress: getNewAddress,
 				}
 			});
-			qtumd.getNewAddress(function(err, result) {
+			berycoind.getNewAddress(function(err, result) {
 				should.not.exist(err);
 				getNewAddress.callCount.should.equal(1);
 				result.address.should.equal('qZLdL7mAQNPHYeBHHtLerPPWNXTTPucEGA');
@@ -6718,14 +6718,14 @@ describe('Qtum Service', function() {
 
 	describe('#callContract', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var callContract = sinon.stub().callsArgWith(3, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					callContract: callContract,
 				}
 			});
-			qtumd.callContract('f6177bc9812eeb531907621af6641a41133dea9e', 'd7bb99ba', {}, function(err, result) {
+			berycoind.callContract('f6177bc9812eeb531907621af6641a41133dea9e', 'd7bb99ba', {}, function(err, result) {
 				should.exist(err);
 				callContract.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -6754,16 +6754,16 @@ describe('Qtum Service', function() {
 				}
 			};
 
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var callContract = sinon.stub().callsArgWith(3, null, {
 				result: callContractResult,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					callContract: callContract,
 				}
 			});
-			qtumd.callContract('f6177bc9812eeb531907621af6641a41133dea9e', 'd7bb99ba', {}, function(err, result) {
+			berycoind.callContract('f6177bc9812eeb531907621af6641a41133dea9e', 'd7bb99ba', {}, function(err, result) {
 				should.not.exist(err);
 				callContract.callCount.should.equal(1);
 				result.should.deep.equal(callContractResult);
@@ -6774,14 +6774,14 @@ describe('Qtum Service', function() {
 
 	describe('#getAccountInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getAccountInfo = sinon.stub().callsArgWith(1, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAccountInfo: getAccountInfo,
 				}
 			});
-			qtumd.getAccountInfo('f6177bc9812eeb531907621af6641a41133dea9e', function(err, result) {
+			berycoind.getAccountInfo('f6177bc9812eeb531907621af6641a41133dea9e', function(err, result) {
 				should.exist(err);
 				getAccountInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
@@ -7076,16 +7076,16 @@ describe('Qtum Service', function() {
 				"code": "6060604052600436106100c45763ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166306fdde0381146100c9578063095ea7b31461015357806318160ddd1461018957806323b872dd146101ae578063313ce567146101d65780633542aee2146101e957806370a082311461020b5780638da5cb5b1461022a57806395d89b4114610259578063a9059cbb1461026c578063dd62ed3e1461028e578063f2fde38b146102b3578063f7abab9e146102d4575b600080fd5b34156100d457600080fd5b6100dc6102e7565b60405160208082528190810183818151815260200191508051906020019080838360005b83811015610118578082015183820152602001610100565b50505050905090810190601f1680156101455780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b341561015e57600080fd5b610175600160a060020a036004351660243561031e565b604051901515815260200160405180910390f35b341561019457600080fd5b61019c6103c4565b60405190815260200160405180910390f35b34156101b957600080fd5b610175600160a060020a03600435811690602435166044356103ca565b34156101e157600080fd5b61019c6104f4565b34156101f457600080fd5b610175600160a060020a03600435166024356104f9565b341561021657600080fd5b61019c600160a060020a0360043516610528565b341561023557600080fd5b61023d610543565b604051600160a060020a03909116815260200160405180910390f35b341561026457600080fd5b6100dc610552565b341561027757600080fd5b610175600160a060020a0360043516602435610589565b341561029957600080fd5b61019c600160a060020a036004358116906024351661065f565b34156102be57600080fd5b6102d2600160a060020a036004351661068a565b005b34156102df57600080fd5b61019c6106e9565b60408051908101604052600b81527f426f64686920546f6b656e000000000000000000000000000000000000000000602082015281565b60008115806103505750600160a060020a03338116600090815260026020908152604080832093871683529290522054155b151561035b57600080fd5b600160a060020a03338116600081815260026020908152604080832094881680845294909152908190208590557f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b9259085905190815260200160405180910390a350600192915050565b60005481565b600080600160a060020a03841615156103e257600080fd5b50600160a060020a03808516600081815260026020908152604080832033909516835293815283822054928252600190529190912054610428908463ffffffff6106f416565b600160a060020a03808716600090815260016020526040808220939093559086168152205461045d908463ffffffff61070616565b600160a060020a038516600090815260016020526040902055610486818463ffffffff6106f416565b600160a060020a03808716600081815260026020908152604080832033861684529091529081902093909355908616917fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9086905190815260200160405180910390a3506001949350505050565b600881565b60035460009033600160a060020a0390811691161461051757600080fd5b6105218383610715565b9392505050565b600160a060020a031660009081526001602052604090205490565b600354600160a060020a031681565b60408051908101604052600381527f424f540000000000000000000000000000000000000000000000000000000000602082015281565b6000600160a060020a03831615156105a057600080fd5b600160a060020a0333166000908152600160205260409020546105c9908363ffffffff6106f416565b600160a060020a0333811660009081526001602052604080822093909355908516815220546105fe908363ffffffff61070616565b600160a060020a0380851660008181526001602052604090819020939093559133909116907fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef9085905190815260200160405180910390a350600192915050565b600160a060020a03918216600090815260026020908152604080832093909416825291909152205490565b60035433600160a060020a039081169116146106a557600080fd5b600160a060020a03811615156106ba57600080fd5b6003805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0392909216919091179055565b662386f26fc1000081565b60008282111561070057fe5b50900390565b60008282018381101561052157fe5b60008054819061072b908463ffffffff61070616565b9050662386f26fc1000081111561074157600080fd5b6000805484018155600160a060020a03851681526001602052604090205461076f908463ffffffff61070616565b600160a060020a038516600081815260016020526040808220939093555490917f4e3883c75cc9c752bb1db2e406a822e4a75067ae77ad9a0a4d179f2709b9e1f6919086905191825260208201526040908101905180910390a250600193925050505600a165627a7a723058209fee18012e751567d5362aa378208f048925363b5acd296dcdaddf8ea8eeb8d50029"
 			};
 
-			var qtumd = new QtumService(baseConfig);
+			var berycoind = new BerycoinService(baseConfig);
 			var getAccountInfo = sinon.stub().callsArgWith(1, null, {
 				result: accountInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getAccountInfo: getAccountInfo,
 				}
 			});
-			qtumd.getAccountInfo('f6177bc9812eeb531907621af6641a41133dea9e', function(err, result) {
+			berycoind.getAccountInfo('f6177bc9812eeb531907621af6641a41133dea9e', function(err, result) {
 				should.not.exist(err);
 				getAccountInfo.callCount.should.equal(1);
 				result.should.deep.equal(accountInfo);
@@ -7096,17 +7096,17 @@ describe('Qtum Service', function() {
 
 	describe('#getTransactionReceipt', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getTransactionReceipt = sinon.stub().callsArgWith(1, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getTransactionReceipt: getTransactionReceipt,
 				}
 			});
-			qtumd.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
+			berycoind.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getTransactionReceipt.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -7136,19 +7136,19 @@ describe('Qtum Service', function() {
 					]
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getTransactionReceipt = sinon.stub().callsArgWith(1, null, {
 				result: transactionReceipt,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getTransactionReceipt: getTransactionReceipt,
 				}
 			});
-			qtumd.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
+			berycoind.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getTransactionReceipt.callCount.should.equal(1);
 				result.should.deep.equal(transactionReceipt);
 				done();
@@ -7178,23 +7178,23 @@ describe('Qtum Service', function() {
 					]
 				}
 			];
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getTransactionReceipt = sinon.stub().callsArgWith(1, null, {
 				result: transactionReceipt,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getTransactionReceipt: getTransactionReceipt,
 				}
 			});
-			qtumd.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
+			berycoind.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
 				should.not.exist(err);
 				getTransactionReceipt.callCount.should.equal(1);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind.getTransactionReceipt('51b34cbcaf6fe3b687bf3d954f3baaeb377f5d0a3a8cdd29d899c049f6954a49', function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getTransactionReceipt.callCount.should.equal(1);
 					result.should.deep.equal(transactionReceipt);
 					done();
@@ -7205,17 +7205,17 @@ describe('Qtum Service', function() {
 
 	describe('#getDgpInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getDgpInfo = sinon.stub().callsArgWith(0, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getDgpInfo: getDgpInfo,
 				}
 			});
-			qtumd.getDgpInfo(function(err, result) {
+			berycoind.getDgpInfo(function(err, result) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getDgpInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -7228,19 +7228,19 @@ describe('Qtum Service', function() {
 				"blockgaslimit": 40000000
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getDgpInfo = sinon.stub().callsArgWith(0, null, {
 				result: dpgInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getDgpInfo: getDgpInfo,
 				}
 			});
-			qtumd.getDgpInfo(function(err, result) {
+			berycoind.getDgpInfo(function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getDgpInfo.callCount.should.equal(1);
 				result.should.deep.equal(dpgInfo);
 				done();
@@ -7253,23 +7253,23 @@ describe('Qtum Service', function() {
 				"blockgaslimit": 40000000
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getDgpInfo = sinon.stub().callsArgWith(0, null, {
 				result: dpgInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getDgpInfo: getDgpInfo,
 				}
 			});
-			qtumd.getDgpInfo(function(err, result) {
+			berycoind.getDgpInfo(function(err, result) {
 				should.not.exist(err);
 				getDgpInfo.callCount.should.equal(1);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd.getDgpInfo(function(err, result) {
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind.getDgpInfo(function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getDgpInfo.callCount.should.equal(1);
 					result.should.deep.equal(dpgInfo);
 					done();
@@ -7280,17 +7280,17 @@ describe('Qtum Service', function() {
 
 	describe('#getMiningInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getMiningInfo = sinon.stub().callsArgWith(0, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getMiningInfo: getMiningInfo,
 				}
 			});
-			qtumd.getMiningInfo(function(err, result) {
+			berycoind.getMiningInfo(function(err, result) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getMiningInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -7321,19 +7321,19 @@ describe('Qtum Service', function() {
 				"chain": "test"
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getMiningInfo = sinon.stub().callsArgWith(0, null, {
 				result: miningInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getMiningInfo: getMiningInfo,
 				}
 			});
-			qtumd.getMiningInfo(function(err, result) {
+			berycoind.getMiningInfo(function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getMiningInfo.callCount.should.equal(1);
 				result.should.deep.equal(miningInfo);
 				done();
@@ -7364,23 +7364,23 @@ describe('Qtum Service', function() {
 				"chain": "test"
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getMiningInfo = sinon.stub().callsArgWith(0, null, {
 				result: miningInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getMiningInfo: getMiningInfo,
 				}
 			});
-			qtumd.getMiningInfo(function(err, result) {
+			berycoind.getMiningInfo(function(err, result) {
 				should.not.exist(err);
 				getMiningInfo.callCount.should.equal(1);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd.getMiningInfo(function(err, result) {
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind.getMiningInfo(function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getMiningInfo.callCount.should.equal(1);
 					result.should.deep.equal(miningInfo);
 					done();
@@ -7391,17 +7391,17 @@ describe('Qtum Service', function() {
 
 	describe('#getStakingInfo', function() {
 		it('will give rpc error', function(done) {
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getStakingInfo = sinon.stub().callsArgWith(0, { message: 'Test error', code: -1 });
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getStakingInfo: getStakingInfo,
 				}
 			});
-			qtumd.getStakingInfo(function(err, result) {
+			berycoind.getStakingInfo(function(err, result) {
 				should.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getStakingInfo.callCount.should.equal(1);
 				err.should.be.an.instanceof(errors.RPCError);
 				done();
@@ -7422,19 +7422,19 @@ describe('Qtum Service', function() {
 				"expectedtime": 0
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getStakingInfo = sinon.stub().callsArgWith(0, null, {
 				result: stakingInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getStakingInfo: getStakingInfo,
 				}
 			});
-			qtumd.getStakingInfo(function(err, result) {
+			berycoind.getStakingInfo(function(err, result) {
 				should.not.exist(err);
-				qtumd._tryAllClients.callCount.should.equal(1);
+				berycoind._tryAllClients.callCount.should.equal(1);
 				getStakingInfo.callCount.should.equal(1);
 				result.should.deep.equal(stakingInfo);
 				done();
@@ -7455,23 +7455,23 @@ describe('Qtum Service', function() {
 				"expectedtime": 0
 			};
 
-			var qtumd = new QtumService(baseConfig);
-			sinon.spy(qtumd, '_tryAllClients');
+			var berycoind = new BerycoinService(baseConfig);
+			sinon.spy(berycoind, '_tryAllClients');
 			var getStakingInfo = sinon.stub().callsArgWith(0, null, {
 				result: stakingInfo,
 			});
-			qtumd.nodes.push({
+			berycoind.nodes.push({
 				client: {
 					getStakingInfo: getStakingInfo,
 				}
 			});
-			qtumd.getStakingInfo(function(err, result) {
+			berycoind.getStakingInfo(function(err, result) {
 				should.not.exist(err);
 				getStakingInfo.callCount.should.equal(1);
-				qtumd._tryAllClients.callCount.should.equal(1);
-				qtumd.getStakingInfo(function(err, result) {
+				berycoind._tryAllClients.callCount.should.equal(1);
+				berycoind.getStakingInfo(function(err, result) {
 					should.not.exist(err);
-					qtumd._tryAllClients.callCount.should.equal(1);
+					berycoind._tryAllClients.callCount.should.equal(1);
 					getStakingInfo.callCount.should.equal(1);
 					result.should.deep.equal(stakingInfo);
 					done();

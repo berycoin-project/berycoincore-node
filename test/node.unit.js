@@ -2,15 +2,15 @@
 
 var should = require('chai').should();
 var sinon = require('sinon');
-var qtumcore = require('qtumcore-lib');
-var Networks = qtumcore.Networks;
+var berycoincore = require('berycoincore-lib');
+var Networks = berycoincore.Networks;
 var proxyquire = require('proxyquire');
 var util = require('util');
 var BaseService = require('../lib/service');
 var index = require('../lib');
 var log = index.log;
 
-describe('Qtumcore Node', function() {
+describe('Berycoincore Node', function() {
 
   var baseConfig = {};
 
@@ -425,7 +425,7 @@ describe('Qtumcore Node', function() {
 
   describe('#getNetworkName', function() {
     afterEach(function() {
-      qtumcore.Networks.disableRegtest();
+      berycoincore.Networks.disableRegtest();
     });
     it('it will return the network name for livenet', function() {
       var node = new Node(baseConfig);

@@ -14,17 +14,17 @@ A node represents a collection of services that are loaded together. For more in
 
 ```js
 
-var index = require('qtumcore-node');
-var Qtum = index.services.Qtum;
+var index = require('berycoincore-node');
+var Berycoin = index.services.Berycoin;
 var Node = index.Node;
 
 var configuration = {
-  datadir: '/home/user/.qtum',
+  datadir: '/home/user/.berycoin',
   network: 'testnet',
   services: [
     {
-      name: 'qtumd',
-      module: Qtum,
+      name: 'berycoind',
+      module: Berycoin,
       config: {}
     }
   ]
@@ -37,7 +37,7 @@ node.start(function() {
 });
 
 node.on('ready', function() {
-  console.log('Qtumcoin Node Ready');
+  console.log('Berycoincoin Node Ready');
 });
 
 node.on('error', function(err) {

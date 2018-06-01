@@ -3,10 +3,10 @@
 var should = require('chai').should();
 
 describe('Index Exports', function() {
-  it('will export qtumcore-lib', function() {
-    var qtumcore = require('../');
-    should.exist(qtumcore.lib);
-    should.exist(qtumcore.lib.Transaction);
-    should.exist(qtumcore.lib.Block);
+  it('will export berycoincore-lib', function() {
+    var berycoincore = require('../');
+    should.exist(berycoincore.lib);
+    should.exist(berycoincore.lib.Transaction);
+    should.exist(berycoincore.lib.Block);
   });
 });

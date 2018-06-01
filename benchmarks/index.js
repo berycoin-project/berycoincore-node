@@ -26,7 +26,7 @@ var fixtureData = {
   ]
 };
 
-var qtumd = require('../').services.Bitcoin({
+var berycoind = require('../').services.Bitcoin({
   node: {
     datadir: process.env.HOME + '/.bitcoin',
     network: {
@@ -35,18 +35,18 @@ var qtumd = require('../').services.Bitcoin({
   }
 });
 
-qtumd.on('error', function(err) {
+berycoind.on('error', function(err) {
   console.error(err.message);
 });
 
-qtumd.start(function(err) {
+berycoind.start(function(err) {
   if (err) {
     throw err;
   }
   console.log('Bitcoin Core started');
 });
 
-qtumd.on('ready', function() {
+berycoind.on('ready', function() {
 
   console.log('Bitcoin Core ready');
 
@@ -69,7 +69,7 @@ qtumd.on('ready', function() {
           c = 0;
         }
         var hash = fixtureData.blockHashes[c];
-          qtumd.getBlock(hash, function(err, block) {
+          berycoind.getBlock(hash, function(err, block) {
           if (err) {
             throw err;
           }
@@ -97,7 +97,7 @@ qtumd.on('ready', function() {
           c = 0;
         }
         var hash = fixtureData.txHashes[c];
-          qtumd.getTransaction(hash, true, function(err, tx) {
+          berycoind.getTransaction(hash, true, function(err, tx) {
           if (err) {
             throw err;
           }
@@ -122,22 +122,22 @@ qtumd.on('ready', function() {
 
       var suite = new benchmark.Suite();
 
-      suite.add('qtumd getblock (native)', bitcoindGetBlockNative, {
+      suite.add('berycoind getblock (native)', bitcoindGetBlockNative, {
         defer: true,
         maxTime: maxTime
       });
 
-      suite.add('qtumd getblock (json rpc)', bitcoindGetBlockJsonRpc, {
+      suite.add('berycoind getblock (json rpc)', bitcoindGetBlockJsonRpc, {
         defer: true,
         maxTime: maxTime
       });
 
-      suite.add('qtumd gettransaction (native)', bitcoinGetTransactionNative, {
+      suite.add('berycoind gettransaction (native)', bitcoinGetTransactionNative, {
         defer: true,
         maxTime: maxTime
       });
 
-      suite.add('qtumd gettransaction (json rpc)', bitcoinGetTransactionJsonRpc, {
+      suite.add('berycoind gettransaction (json rpc)', bitcoinGetTransactionJsonRpc, {
         defer: true,
         maxTime: maxTime
       });
@@ -158,7 +158,7 @@ qtumd.on('ready', function() {
       throw err;
     }
     console.log('Finished');
-      qtumd.stop(function(err) {
+      berycoind.stop(function(err) {
       if (err) {
         console.error('Fail to stop services: ' + err);
         process.exit(1);
