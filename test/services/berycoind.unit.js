@@ -6567,7 +6567,7 @@ describe('Berycoin Service', function() {
 			});
 
 
-			emitter.on('quantumd/addressbalance', function(data) {
+			emitter.on('berycoind/addressbalance', function(data) {
 				data.balance.should.equal(1);
 				data.totalReceived.should.equal(2);
 				data.totalSpent.should.equal(1);
@@ -6612,7 +6612,7 @@ describe('Berycoin Service', function() {
 				unconfirmedBalance: 100
 			});
 
-			emitter.on('quantumd/addressbalance', function(data) {
+			emitter.on('berycoind/addressbalance', function(data) {
 				data.balance.should.equal(0);
 				data.totalReceived.should.equal(10);
 				data.totalSpent.should.equal(10);
